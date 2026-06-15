@@ -1,5 +1,5 @@
 # Análisis de Requerimientos – Sistema de Gestión de Citas para Hotel (RF, RNF, Errores)
-**Enfoque académico – Proyecto base de datos**
+**Enfoque académico – Descripción funcional y de calidad**
 
 **Autor:** Angel Uriel Monterrosas Gonzalez  
 **Matrícula:** 202339872  
@@ -10,46 +10,56 @@
 
 ---
 
-## 1. Requerimientos funcionales (RF) – Base de datos
+## 1. Requerimientos funcionales (RF)
 
-| ID  | Requerimiento                                                                 | Criterio de aceptación                                                                 |
-|-----|-------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
-| RF1 | Registrar, actualizar y eliminar lógicamente (soft delete) clientes.          | Tabla `Cliente` con campos: id_cliente, nombre, email, teléfono, activo (boolean).      |
-| RF2 | Mantener catálogo de tipos de habitación (simple, doble, suite) con precio base por temporada (baja/alta). | Tabla `TipoHabitacion` y `PrecioTemporada` (nombre_temporada, precio).                  |
-| RF3 | Gestionar inventario de habitaciones individuales (número, piso, estado: disponible, mantenimiento, ocupada). | Tabla `Habitacion` con FK a `TipoHabitacion`. Estado actual.                             |
-| RF4 | Crear una reserva con fechas de entrada/salida, cliente, habitación y servicios opcionales. | Tabla `Reserva` que no permita fechas solapadas para la misma habitación (mediante restricción o trigger). |
-| RF5 | Cancelar reserva (cambio de estado a 'cancelada') y liberar habitación automáticamente. | Trigger `after update` que reactive disponibilidad si estado pasa a cancelada.          |
-| RF6 | Asociar servicios adicionales (ej. desayuno, limpieza especial) a una reserva, con precio y cantidad. | Tabla `ReservaServicio` (id_reserva, id_servicio, cantidad, precio_momento).            |
-| RF7 | Registrar pagos parciales o totales de una reserva, vinculando cada pago a un método (tarjeta, efectivo). | Tabla `Pago` con monto, fecha, id_reserva, método.                                      |
-| RF8 | Consultar disponibilidad de habitaciones por rango de fechas y tipo (vista o función). | Función o procedimiento `disponibilidad(fecha_inicio, fecha_fin, id_tipo)` que devuelve lista de habitaciones libres. |
-| RF9 | Generar factura final al checkout (suma de noches + servicios – pagos).        | Procedimiento almacenado `calcular_factura(id_reserva)` que retorna desglose.           |
-| RF10 | Mantener historial de cambios de estado de reserva (creada, confirmada, cancelada, completada). | Tabla `HistorialReserva` con trigger que registre usuario, timestamp y estado anterior. |
+Los requerimientos funcionales describen **qué** debe hacer el sistema de gestión de citas (reservas) del hotel.
+
+| ID  | Requerimiento funcional | Descripción clara (sin tecnicismos) |
+|-----|------------------------|--------------------------------------|
+| RF1 | Gestión de clientes | El sistema debe permitir registrar nuevos clientes, modificar sus datos (nombre, teléfono, correo) y eliminarlos de forma lógica (que no aparezcan en nuevas reservas pero se conserve su historial). |
+| RF2 | Catálogo de tipos de habitación | Se debe poder definir diferentes tipos de habitación (ej. simple, doble, suite) y asignar un precio base por temporada (por ejemplo, precio en temporada alta y en temporada baja). |
+| RF3 | Inventario de habitaciones | Cada habitación individual (número, piso) debe tener un estado actual: disponible, ocupada o en mantenimiento. El sistema debe poder actualizar ese estado. |
+| RF4 | Creación de reservas | El sistema debe permitir a un recepcionista crear una reserva indicando: cliente, habitación específica, fechas de entrada y salida, y servicios adicionales opcionales. No se deben poder crear dos reservas que solapen fechas para la misma habitación. |
+| RF5 | Cancelación de reservas | Se debe poder cancelar una reserva. Al cancelar, la habitación debe quedar disponible nuevamente para futuras reservas. |
+| RF6 | Servicios adicionales | El sistema debe permitir asociar servicios extra (ej. desayuno, spa, limpieza especial) a una reserva, registrando cantidad y precio vigente al momento de la reserva. |
+| RF7 | Registro de pagos | Se deben poder registrar pagos parciales o totales de una reserva, indicando el monto, la fecha y el método de pago (efectivo, tarjeta, transferencia). |
+| RF8 | Consulta de disponibilidad | El sistema debe ofrecer una función que, dado un rango de fechas y un tipo de habitación, muestre qué habitaciones están libres en ese período. |
+| RF9 | Facturación al checkout | Al finalizar la estancia (checkout), el sistema debe calcular el total a pagar sumando el costo de las noches más los servicios consumidos, restando los pagos ya realizados, y mostrar un desglose. |
+| RF10 | Historial de cambios de reserva | Cada vez que una reserva cambie de estado (creada, confirmada, cancelada, completada), el sistema debe registrar quién hizo el cambio, cuándo y el estado anterior. |
 
 ---
 
 ## 2. Requerimientos no funcionales (RNF)
 
-| ID  | Requerimiento no funcional | Especificación técnica (escala académica)                                             |
-|-----|----------------------------|----------------------------------------------------------------------------------------|
-| RNF1 | **Rendimiento**            | Consulta de disponibilidad para 7 días debe resolverse en < 500 ms con hasta 100 habitaciones y 1,000 reservas registradas. Índices simples en `Reserva(fecha_entrada, fecha_salida, id_habitacion)`. |
-| RNF2 | **Concurrencia**           | Soporte para 5-10 usuarios simultáneos (simulación de recepción y consultas web). Nivel de aislamiento `READ COMMITTED`. |
-| RNF3 | **Consistencia**           | Restricción `CHECK (fecha_salida > fecha_entrada)`. Evitar reservas superpuestas mediante trigger o restricción de exclusión (según SGBD). |
-| RNF4 | **Disponibilidad**         | Respaldo manual o programado semanal. No se exige alta disponibilidad (entorno académico). |
-| RNF5 | **Seguridad**              | Roles básicos: `recepcionista` (CRUD en reservas, clientes, pagos), `admin` (estructura). No se almacenan datos sensibles de tarjetas (solo método y monto). |
-| RNF6 | **Escalabilidad**          | Diseño que permita agregar más habitaciones o servicios sin reestructurar tablas. No se requiere particionamiento. |
-| RNF7 | **Mantenibilidad**         | Entregar diagrama ER, diccionario de datos y script SQL comentado.                    |
-| RNF8 | **Usabilidad**             | Las consultas complejas deben empaquetarse en funciones o vistas con nombres autoexplicativos. |
+Los requerimientos no funcionales describen **cómo** debe ser el sistema en términos de calidad, rendimiento, seguridad, etc. (sin especificar tecnologías).
+
+| ID  | Requerimiento no funcional | Descripción |
+|-----|----------------------------|--------------|
+| RNF1 | **Rendimiento** | La consulta de disponibilidad para un rango de 7 días debe mostrar resultados en menos de medio segundo, considerando un volumen académico de hasta 100 habitaciones y 1000 reservas históricas. |
+| RNF2 | **Concurrencia** | El sistema debe soportar el uso simultáneo de al menos 5 usuarios (por ejemplo, dos recepcionistas y tres consultas web de disponibilidad) sin conflictos ni pérdida de datos. |
+| RNF3 | **Consistencia** | No se deben generar situaciones donde una misma habitación aparezca reservada a dos clientes diferentes para las mismas fechas. Tampoco se debe permitir una reserva con fecha de salida anterior a la fecha de entrada. |
+| RNF4 | **Disponibilidad** | Para efectos académicos, se espera que el sistema esté disponible durante los horarios de práctica. Se realizarán respaldos de información semanalmente. |
+| RNF5 | **Seguridad** | Solo los usuarios autorizados (recepcionistas y administrador) pueden acceder al sistema. No se almacenarán números completos de tarjetas de crédito; solo el método de pago y el monto. |
+| RNF6 | **Escalabilidad** | El diseño de la base de datos debe permitir agregar más habitaciones o nuevos tipos de servicio sin necesidad de rediseñar completamente la estructura. |
+| RNF7 | **Mantenibilidad** | Se debe entregar documentación clara: descripción de entidades y relaciones, reglas de negocio, y un diccionario de datos. El código SQL debe estar comentado. |
+| RNF8 | **Usabilidad para consultas** | Las operaciones más frecuentes (consultar disponibilidad, crear reserva, generar factura) deben ser fáciles de ejecutar mediante procedimientos o funciones predefinidas, con nombres intuitivos. |
 
 ---
 
-## 3. Manejo de errores y casos borde (nivel académico)
+## 3. Manejo de errores y casos borde (descripción general)
 
-| Caso | Estrategia |
-|------|-------------|
-| Intento de reserva en habitación ya ocupada | La función de disponibilidad solo devuelve habitaciones libres. Si se intenta insertar manualmente una reserva conflictiva, un trigger `before insert` verifica solapamiento y lanza un error con mensaje claro. |
-| Cancelación fuera de plazo (menos de 24h antes de entrada) | Regla académica: se permite cancelación pero se registra una penalización simbólica (ej. cargo del 10%). La tabla `Reserva` almacena la fecha de cancelación. |
-| Pago mayor al saldo de la reserva | El sistema de pago debe rechazarlo con mensaje "El monto excede el saldo pendiente". Se valida en la aplicación o mediante un trigger `before insert` en `Pago`. |
-| Checkout sin haber pagado todo | El sistema permite generar factura con saldo pendiente y marcar la reserva como 'adeudo'. Opcional: generar reporte de adeudos. |
-| Eliminación de un tipo de habitación con reservas futuras | La FK desde `Habitacion` a `TipoHabitacion` debe ser `ON DELETE RESTRICT`. Para desactivar un tipo, se utiliza un campo `activo` (booleano) y se impiden nuevas reservas por lógica de aplicación. |
-| Inserción de fechas inválidas (salida <= entrada) | Restricción `CHECK (fecha_salida > fecha_entrada)` en la tabla `Reserva`. La base de datos rechaza la inserción. |
-| Fallo de conexión durante una transacción | En scripts académicos se recomienda usar `BEGIN TRANSACTION` y `ROLLBACK` en caso de error. La aplicación puede reintentar una vez. |
+Se describen situaciones anómalas y cómo el sistema debe reaccionar (aún sin detalle técnico).
+
+| Caso | Comportamiento esperado del sistema |
+|------|--------------------------------------|
+| Intentar reservar una habitación ya ocupada en las fechas deseadas | El sistema debe mostrar un mensaje claro: "La habitación [número] no está disponible en esas fechas" y evitar la creación de la reserva. |
+| Cancelar una reserva cuando faltan menos de 24 horas para la entrada | El sistema debe permitir la cancelación, pero registrar una penalización simbólica (por ejemplo, cargar el 10% del costo de la primera noche) a modo de política del hotel. |
+| Registrar un pago por un monto mayor al saldo pendiente de la reserva | El sistema debe rechazar el pago y mostrar un mensaje: "El monto excede el saldo pendiente. Saldo actual: $X". |
+| Realizar el checkout sin haber pagado el total | El sistema debe generar la factura con el monto pendiente, marcar la reserva como "con adeudo" y permitir imprimir un comprobante de deuda. |
+| Intentar eliminar un tipo de habitación que aún tiene reservas futuras | El sistema debe impedir la eliminación y notificar: "No se puede eliminar este tipo de habitación porque existen reservas activas asociadas". En su lugar, se puede desactivar el tipo para nuevas reservas. |
+| Ingresar fechas de reserva inválidas (salida antes que entrada) | El sistema debe detectar el error y solicitar corregir las fechas antes de guardar. |
+| Fallo de conexión mientras se está haciendo una reserva | El sistema debe cancelar la operación incompleta y notificar al usuario. Se debe poder reintentar la operación sin duplicar datos. |
+
+---
+
+**Nota:** Este documento es una especificación previa al diseño técnico. En la siguiente fase se definirán las entidades, atributos, relaciones y restricciones según el gestor de base de datos que se elija.
