@@ -1,11 +1,11 @@
 # Análisis de Requerimientos – Sistema de Gestión de Citas para Hotel (RF, RNF, Errores)
 **Enfoque académico – Descripción funcional y de calidad**
 
-**Autor:** Angel Uriel Monterrosas Gonzalez  
-**Matrícula:** 202339872  
+**Autores:** Angel Uriel Monterrosas Gonzalez  - Noe Tlachi Zenteno.
+**Matrícula:** 202339872  - 202162606
 **Institución:** Benemérita Universidad Autónoma de Puebla (BUAP)  
 **Estudios:** Licenciatura en Ingeniería en Ciencias de la Computación  
-**Proyecto:** Base de datos para gestión de reservas de hotel (escala académica)  
+**Proyecto:** Base de datos para gestión de reservas de hotel.
 **Materia:** Base de datos para ingenierias.
 **Fecha:** 15 - 06 - 2026  
 
