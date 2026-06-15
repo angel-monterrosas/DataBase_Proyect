@@ -1,4 +1,4 @@
-markdown_content = """# Documento de Análisis de Requerimientos Funcionales y No Funcionales
+# Documento de Análisis de Requerimientos Funcionales y No Funcionales
 ## Sistema Centralizado de Gestión para Consultorio Dental
 
 **Autor:** Angel Uriel Monterrosas Gonzalez  
