@@ -15,7 +15,7 @@ El hotel requiere un sistema centralizado que permita gestionar reservas de habi
 
 **Objetivo:** Diseñar e implementar una base de datos relacional que garantice integridad referencial, evite conflictos de horario y permita consultas de disponibilidad en tiempo real.
 
-**Alcance inicial:**  
+**Estructura que se pretende hacer:**  
 - Módulo de clientes (registro, historial)  
 - Módulo de habitaciones (tipos, precios dinámicos, estados)  
 - Módulo de reservas (crear, modificar, cancelar, check-in/out)  
