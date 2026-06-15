@@ -6,7 +6,8 @@
 **Institución:** Benemérita Universidad Autónoma de Puebla (BUAP)  
 **Estudios:** Licenciatura en Ingeniería en Ciencias de la Computación  
 **Proyecto:** Base de datos para gestión de reservas de hotel (escala académica)  
-**Fecha:** 2026-06-14  
+**Materia:** Base de datos para ingenierias.
+**Fecha:** 15 - 06 - 2026  
 
 ---
 
@@ -14,7 +15,7 @@
 
 Los requerimientos funcionales describen **qué** debe hacer el sistema de gestión de citas (reservas) del hotel.
 
-| ID  | Requerimiento funcional | Descripción clara (sin tecnicismos) |
+| ID  | Requerimiento funcional | Descripción|
 |-----|------------------------|--------------------------------------|
 | RF1 | Gestión de clientes | El sistema debe permitir registrar nuevos clientes, modificar sus datos (nombre, teléfono, correo) y eliminarlos de forma lógica (que no aparezcan en nuevas reservas pero se conserve su historial). |
 | RF2 | Catálogo de tipos de habitación | Se debe poder definir diferentes tipos de habitación (ej. simple, doble, suite) y asignar un precio base por temporada (por ejemplo, precio en temporada alta y en temporada baja). |
@@ -38,7 +39,7 @@ Los requerimientos no funcionales describen **cómo** debe ser el sistema en té
 | RNF1 | **Rendimiento** | La consulta de disponibilidad para un rango de 7 días debe mostrar resultados en menos de medio segundo, considerando un volumen académico de hasta 100 habitaciones y 1000 reservas históricas. |
 | RNF2 | **Concurrencia** | El sistema debe soportar el uso simultáneo de al menos 5 usuarios (por ejemplo, dos recepcionistas y tres consultas web de disponibilidad) sin conflictos ni pérdida de datos. |
 | RNF3 | **Consistencia** | No se deben generar situaciones donde una misma habitación aparezca reservada a dos clientes diferentes para las mismas fechas. Tampoco se debe permitir una reserva con fecha de salida anterior a la fecha de entrada. |
-| RNF4 | **Disponibilidad** | Para efectos académicos, se espera que el sistema esté disponible durante los horarios de práctica. Se realizarán respaldos de información semanalmente. |
+| RNF4 | **Disponibilidad** | Para efectos académicos, se espera que el sistema esté disponible durante los horarios de práctica. Se realizarán respaldos de información diaria. |
 | RNF5 | **Seguridad** | Solo los usuarios autorizados (recepcionistas y administrador) pueden acceder al sistema. No se almacenarán números completos de tarjetas de crédito; solo el método de pago y el monto. |
 | RNF6 | **Escalabilidad** | El diseño de la base de datos debe permitir agregar más habitaciones o nuevos tipos de servicio sin necesidad de rediseñar completamente la estructura. |
 | RNF7 | **Mantenibilidad** | Se debe entregar documentación clara: descripción de entidades y relaciones, reglas de negocio, y un diccionario de datos. El código SQL debe estar comentado. |
@@ -48,7 +49,7 @@ Los requerimientos no funcionales describen **cómo** debe ser el sistema en té
 
 ## 3. Manejo de errores y casos borde (descripción general)
 
-Se describen situaciones anómalas y cómo el sistema debe reaccionar (aún sin detalle técnico).
+Se describen situaciones anómalas y cómo el sistema debe reaccionar.
 
 | Caso | Comportamiento esperado del sistema |
 |------|--------------------------------------|
