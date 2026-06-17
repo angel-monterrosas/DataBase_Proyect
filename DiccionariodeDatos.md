@@ -1,13 +1,19 @@
-# Análisis de Requerimientos – Sistema de Gestión de Citas para Hotel (RF, RNF, Errores)
-**Enfoque académico – Descripción funcional y de calidad**
+# Diccionario de datos – Sistema de Gestión de Citas para Hotel 
+**Enfoque académico – Describir el diccionario de datos para realizar la base de datos.**
 
 **Autores:** Angel Uriel Monterrosas Gonzalez  - Noe Tlachi Zenteno.
+
 **Matrícula:** 202339872  - 202162606
+
 **Institución:** Benemérita Universidad Autónoma de Puebla (BUAP)  
+
 **Estudios:** Licenciatura en Ingeniería en Ciencias de la Computación  
+
 **Proyecto:** Base de datos para gestión de reservas de hotel.
+
 **Materia:** Base de datos para ingenierias.
-**Fecha:** 15 - 06 - 2026
+
+**Fecha:** 17 - 06 - 2026
 
 ---
 ### Tabla: usuarios
