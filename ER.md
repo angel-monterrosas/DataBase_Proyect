@@ -1,4 +1,4 @@
-# Práctica 6: Modelo ER - Proyecto (sistema de Gestión de Citas para Hotel)
+# Modelo ER - Modelo Relacional - Proyecto (sistema de Gestión de Citas para Hotel)
 
 **Autores:** Angel Uriel Monterrosas Gonzalez - Noe Tlachi Zenteno  
 **Matrícula:** 202339872 - 202162606  
