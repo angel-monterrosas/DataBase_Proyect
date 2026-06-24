@@ -38,7 +38,7 @@ El objetivo de este proyecto es diseñar una base de datos relacional robusta pa
 A partir de los requerimientos establecidos, se ha modelado el siguiente esquema relacional que garantiza la integridad referencial y evita la redundancia de datos.
 
 ![er.png](er.png)
-
+A continuación de lo conceptual a lo normalizado el diagrama relacional: 
 ```mermaid
 erDiagram
     tipos_habitacion {
