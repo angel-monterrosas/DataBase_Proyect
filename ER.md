@@ -1,11 +1,11 @@
-# Práctica 6: Modelo ER - Proyecto (Sistema de Gestión de Citas para Hotel)
+# Práctica 6: Modelo ER - Proyecto (sistema de Gestión de Citas para Hotel)
 
 **Autores:** Angel Uriel Monterrosas Gonzalez - Noe Tlachi Zenteno  
 **Matrícula:** 202339872 - 202162606  
 **Institución:** Benemérita Universidad Autónoma de Puebla (BUAP)  
 **Carrera:** Ingeniería en Ciencias de la Computación  
 **Materia:** Base de Datos para Ingeniería  
-**Profesora:** Beltran Martinez Beatriz  
+**Profesora:** Beltran Martínez Beatriz  
 **Fecha:** 16 de junio de 2026
 
 ---
@@ -28,7 +28,7 @@ El objetivo de este proyecto es diseñar una base de datos relacional robusta pa
 
 ### Requerimientos No Funcionales Clave (RNF)
 * **RNF3 - Consistencia:** Prevención a nivel de base de datos de dobles reservas y fechas ilógicas (salida antes de entrada).
-* **RNF5 - Seguridad:** Protección de datos financieros, guardando solo el método de pago sin datos sensibles de tarjetas.
+* **RNF5 - seguridad:** Protección de datos financieros, guardando solo el método de pago sin datos sensibles de tarjetas.
 * **RNF6 - Escalabilidad:** Diseño normalizado que permite incorporar nuevas sucursales, habitaciones o servicios sin alterar el esquema base.
 
 ---
@@ -39,9 +39,105 @@ A partir de los requerimientos establecidos, se ha modelado el siguiente esquema
 
 ![er.png](er.png)
 
+```mermaid
+erDiagram
+    tipos_habitacion {
+        INT id_tipo_habitacion PK
+        VARCHAR nombre
+        INT capacidad
+        TEXT descripcion
+    }
+    
+    tarifas_temporada {
+        INT id_tarifa PK
+        INT id_tipo_habitacion FK
+        ENUM temporada
+        DECIMAL_10_2 precio_noche
+        DATE fecha_inicio
+        DATE fecha_fin
+    }
+    
+    habitaciones {
+        INT id_habitacion PK
+        INT id_tipo_habitacion FK
+        INT piso
+        ENUM estado_actual
+        BOOLEAN activa
+    }
+    
+    clientes {
+        INT id_cliente PK
+        VARCHAR nombre
+        VARCHAR telefono
+        VARCHAR correo
+        BOOLEAN activo
+    }
+    
+    reservas {
+        INT id_reserva PK
+        INT id_cliente FK
+        INT id_habitacion FK
+        DATE fecha_entrada
+        DATE fecha_salida
+        ENUM estado_reserva
+        DATETIME fecha_creacion
+        DECIMAL_10_2 penalizacion
+        DATETIME fecha_cancelacion
+    }
+    
+    servicios {
+        INT id_servicio PK
+        VARCHAR nombre
+        DECIMAL_10_2 precio_vigente
+        TEXT descripcion
+    }
+    
+    reserva_servicios {
+        INT id_reserva_servicio PK
+        INT id_reserva FK
+        INT id_servicio FK
+        INT cantidad
+        DECIMAL_10_2 precio_unitario
+    }
+    
+    pagos {
+        INT id_pago PK
+        INT id_reserva FK
+        DECIMAL_10_2 monto
+        DATETIME fecha_pago
+        ENUM metodo_pago
+    }
+    
+    usuarios {
+        INT id_usuario PK
+        VARCHAR nombre_usuario
+        VARCHAR nombre_completo
+        ENUM rol
+    }
+    
+    historial_reservas {
+        INT id_historial PK
+        INT id_reserva FK
+        INT id_usuario FK
+        VARCHAR estado_anterior
+        VARCHAR estado_nuevo
+        DATETIME fecha_cambio
+        TEXT comentario
+    }
 
+    %% Relaciones
+    tipos_habitacion ||--o{ tarifas_temporada : "tiene"
+    tipos_habitacion ||--o{ habitaciones : "clasifica"
+    clientes ||--o{ reservas : "realiza"
+    habitaciones ||--o{ reservas : "es asignada a"
+    reservas ||--o{ reserva_servicios : "incluye"
+    servicios ||--o{ reserva_servicios : "ofrece"
+    reservas ||--o{ pagos : "recibe"
+    reservas ||--o{ historial_reservas : "registra cambios"
+    usuarios ||--o{ historial_reservas : "realiza"
+```
 
----
+  
 
 ## 3. Diccionario de Datos
 
@@ -58,7 +154,7 @@ A continuación, se define la estructura técnica de cada entidad perteneciente 
 | `rol` | `ENUM` | ('ADMIN','RECEPCIONISTA') | No | - | Rol dentro del sistema. |
 
 ### Tabla: `clientes`
-**Descripción:** Almacena los datos de los huéspedes. Soporta borrado lógico.
+**Descripción:** Almacena los datos de los huéspedes. soporta borrado lógico.
 
 | Columna | Tipo de dato | Longitud / Precisión | ¿Nulo? | Clave | Descripción |
 |---------|--------------|----------------------|--------|-------|-------------|
