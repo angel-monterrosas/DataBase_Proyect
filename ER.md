@@ -1,4 +1,4 @@
-# Modelo ER - Modelo Relacional - Proyecto (sistema de Gestión de Citas para Hotel)
+# Modelo ER - Modelo Relacional - Proyecto (Sistema de Gestión de Citas para Hotel)
 
 **Autores:** Angel Uriel Monterrosas Gonzalez - Noe Tlachi Zenteno  
 **Matrícula:** 202339872 - 202162606  
@@ -28,17 +28,108 @@ El objetivo de este proyecto es diseñar una base de datos relacional robusta pa
 
 ### Requerimientos No Funcionales Clave (RNF)
 * **RNF3 - Consistencia:** Prevención a nivel de base de datos de dobles reservas y fechas ilógicas (salida antes de entrada).
-* **RNF5 - seguridad:** Protección de datos financieros, guardando solo el método de pago sin datos sensibles de tarjetas.
+* **RNF5 - Seguridad:** Protección de datos financieros, guardando solo el método de pago sin datos sensibles de tarjetas.
 * **RNF6 - Escalabilidad:** Diseño normalizado que permite incorporar nuevas sucursales, habitaciones o servicios sin alterar el esquema base.
 
 ---
 
-## 2. Diagrama Entidad-Relación (ER)
+## 2. Diagramas de Base de Datos
 
-A partir de los requerimientos establecidos, se ha modelado el siguiente esquema relacional que garantiza la integridad referencial y evita la redundancia de datos.
+A partir de los requerimientos establecidos, se ha modelado el esquema conceptual y su posterior traducción al modelo relacional, garantizando la integridad referencial en **Tercera Forma Normal (3NF)**.
 
-![er.png](er.png)
-A continuación de lo conceptual a lo normalizado el diagrama relacional: 
+### Modelo Entidad-Relación (Conceptual)
+
+Este diagrama representa las entidades principales, sus atributos atómicos (1NF) y las relaciones lógicas del negocio antes de normalizar las relaciones de muchos a muchos.
+
+```mermaid
+erDiagram
+    CLIENTES ||--o{ RESERVAS : "realiza"
+    HABITACIONES ||--o{ RESERVAS : "es asignada a"
+    TIPOS_HABITACION ||--o{ HABITACIONES : "clasifica"
+    TIPOS_HABITACION ||--o{ TARIFAS_TEMPORADA : "tiene"
+    RESERVAS }o--o{ SERVICIOS : "incluye"
+    RESERVAS ||--o{ PAGOS : "recibe"
+    RESERVAS ||--o{ HISTORIAL_RESERVAS : "registra cambios"
+    USUARIOS ||--o{ HISTORIAL_RESERVAS : "realiza"
+
+    CLIENTES {
+        INT id_cliente
+        VARCHAR nombre
+        VARCHAR apellido_paterno
+        VARCHAR apellido_materno
+        VARCHAR telefono
+        VARCHAR correo
+        BOOLEAN activo
+    }
+    
+    RESERVAS {
+        INT id_reserva
+        DATE fecha_entrada
+        DATE fecha_salida
+        ENUM estado_reserva
+        DATETIME fecha_creacion
+        DECIMAL penalizacion
+        DATETIME fecha_cancelacion
+    }
+    
+    HABITACIONES {
+        INT id_habitacion
+        INT piso
+        ENUM estado_actual
+        BOOLEAN activa
+    }
+    
+    TIPOS_HABITACION {
+        INT id_tipo_habitacion
+        VARCHAR nombre
+        INT capacidad
+        TEXT descripcion
+    }
+    
+    TARIFAS_TEMPORADA {
+        INT id_tarifa
+        ENUM temporada
+        DECIMAL precio_noche
+        DATE fecha_inicio
+        DATE fecha_fin
+    }
+    
+    SERVICIOS {
+        INT id_servicio
+        VARCHAR nombre
+        DECIMAL precio_vigente
+        TEXT descripcion
+    }
+    
+    PAGOS {
+        INT id_pago
+        DECIMAL monto
+        DATETIME fecha_pago
+        ENUM metodo_pago
+    }
+    
+    USUARIOS {
+        INT id_usuario
+        VARCHAR nombre_usuario
+        VARCHAR nombre
+        VARCHAR apellido_paterno
+        VARCHAR apellido_materno
+        ENUM rol
+    }
+    
+    HISTORIAL_RESERVAS {
+        INT id_historial
+        VARCHAR estado_anterior
+        VARCHAR estado_nuevo
+        DATETIME fecha_cambio
+        TEXT comentario
+    }
+```
+
+### Modelo Relacional (Normalizado)
+
+A continuación, la transformación al diseño físico, resolviendo las cardinalidades con tablas intermedias (`reserva_servicios`) y declarando Claves Primarias (PK) y Foráneas (FK).
+
 ```mermaid
 erDiagram
     tipos_habitacion {
@@ -68,6 +159,8 @@ erDiagram
     clientes {
         INT id_cliente PK
         VARCHAR nombre
+        VARCHAR apellido_paterno
+        VARCHAR apellido_materno
         VARCHAR telefono
         VARCHAR correo
         BOOLEAN activo
@@ -111,7 +204,9 @@ erDiagram
     usuarios {
         INT id_usuario PK
         VARCHAR nombre_usuario
-        VARCHAR nombre_completo
+        VARCHAR nombre
+        VARCHAR apellido_paterno
+        VARCHAR apellido_materno
         ENUM rol
     }
     
@@ -137,7 +232,7 @@ erDiagram
     usuarios ||--o{ historial_reservas : "realiza"
 ```
 
-  
+---
 
 ## 3. Diccionario de Datos
 
@@ -150,16 +245,20 @@ A continuación, se define la estructura técnica de cada entidad perteneciente 
 |---------|--------------|----------------------|--------|-------|-------------|
 | `id_usuario` | `INT` | - | No | **PK** | Identificador del usuario (Auto_increment). |
 | `nombre_usuario` | `VARCHAR` | 50 | No | - | Nombre de usuario para login. |
-| `nombre_completo`| `VARCHAR` | 100 | No | - | Nombre real del empleado. |
+| `nombre` | `VARCHAR` | 50 | No | - | Nombre(s) del empleado. |
+| `apellido_paterno`| `VARCHAR` | 50 | No | - | Apellido paterno del empleado. |
+| `apellido_materno`| `VARCHAR` | 50 | Sí | - | Apellido materno del empleado. |
 | `rol` | `ENUM` | ('ADMIN','RECEPCIONISTA') | No | - | Rol dentro del sistema. |
 
 ### Tabla: `clientes`
-**Descripción:** Almacena los datos de los huéspedes. soporta borrado lógico.
+**Descripción:** Almacena los datos de los huéspedes. Soporta borrado lógico.
 
 | Columna | Tipo de dato | Longitud / Precisión | ¿Nulo? | Clave | Descripción |
 |---------|--------------|----------------------|--------|-------|-------------|
 | `id_cliente` | `INT` | - | No | **PK** | Identificador único del cliente (Auto_increment). |
-| `nombre` | `VARCHAR` | 100 | No | - | Nombre completo del cliente. |
+| `nombre` | `VARCHAR` | 50 | No | - | Nombre(s) del cliente. |
+| `apellido_paterno`| `VARCHAR` | 50 | No | - | Apellido paterno del cliente. |
+| `apellido_materno`| `VARCHAR` | 50 | Sí | - | Apellido materno del cliente. |
 | `telefono` | `VARCHAR` | 20 | Sí | - | Número de contacto. |
 | `correo` | `VARCHAR` | 100 | Sí | - | Correo electrónico (`UNIQUE`). |
 | `activo` | `BOOLEAN` | - | No | - | Indica si el cliente está activo (Default: TRUE). |
@@ -258,6 +357,3 @@ A continuación, se define la estructura técnica de cada entidad perteneciente 
 | `comentario` | `TEXT` | - | Sí | - | Observaciones o motivos del cambio. |
 
 ---
-
-## 4. Conclusión
-El diseño propuesto aborda eficazmente los procesos operativos de un hotel. La normalización aplicada (identificable en tablas como `reserva_servicios` y `tarifas_temporada`) previene anomalías de actualización y eliminación. Además, la incorporación de un `historial_reservas` y restricciones estrictas a nivel base de datos proporcionan una capa indispensable de seguridad, auditoría y consistencia a largo plazo para el proyecto de ingeniería.
