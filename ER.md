@@ -869,3 +869,46 @@ Para garantizar un codigo limpio, mantenible y alineado con las buenas practicas
 | Usuarios (incluye cambio de contraseña) | Crear, Leer, Actualizar, Eliminar | No permitido |
 | Reportes | Todos los reportes | Solo reportes basicos de ocupacion |
 | Configuracion | Acceso total | No permitido |
+
+## 8. Consultas Útiles para Validación y Reportes(tomar como ejemplo.)
+Verificar disponibilidad de una habitación en un rango de fechas:
+```sql
+SELECT h.id_habitacion, h.estado_actual
+FROM habitaciones h
+WHERE h.id_habitacion = ?
+AND h.activa = TRUE
+AND NOT EXISTS (
+SELECT 1 FROM reservas r
+WHERE r.id_habitacion = h.id_habitacion
+AND r.estado_reserva IN ('ACTIVA', 'CONFIRMADA')
+AND (r.fecha_entrada < ? AND r.fecha_salida > ?)
+);
+```
+Calcular total adeudado de una reserva (noches + servicios - pagos):
+```sql
+SELECT 
+    r.id_reserva,
+    (DATEDIFF(r.fecha_salida, r.fecha_entrada) * t.precio_noche) AS costo_noches,
+    COALESCE(SUM(rs.cantidad * rs.precio_unitario), 0) AS total_servicios,
+    COALESCE(SUM(p.monto), 0) AS total_pagado,
+    (DATEDIFF(r.fecha_salida, r.fecha_entrada) * t.precio_noche 
+     + COALESCE(SUM(rs.cantidad * rs.precio_unitario), 0) 
+     - COALESCE(SUM(p.monto), 0)) AS saldo_pendiente
+FROM reservas r
+JOIN habitaciones h ON r.id_habitacion = h.id_habitacion
+JOIN tipos_habitacion th ON h.id_tipo_habitacion = th.id_tipo_habitacion
+JOIN tarifas_temporada t ON th.id_tipo_habitacion = t.id_tipo_habitacion
+   AND r.fecha_entrada BETWEEN t.fecha_inicio AND t.fecha_fin
+LEFT JOIN reserva_servicios rs ON r.id_reserva = rs.id_reserva
+LEFT JOIN pagos p ON r.id_reserva = p.id_reserva
+WHERE r.id_reserva = ?
+GROUP BY r.id_reserva;
+```
+Consultar historial de cambios de una reserva:
+```sql
+SELECT h.fecha_cambio, u.nombre_usuario, h.estado_anterior, h.estado_nuevo, h.comentario
+FROM historial_reservas h
+JOIN usuarios u ON h.id_usuario = u.id_usuario
+WHERE h.id_reserva = ?
+ORDER BY h.fecha_cambio DESC;
+```
