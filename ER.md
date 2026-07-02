@@ -1,62 +1,52 @@
-# Modelo ER, Relacional y Normalización - Proyecto (Sistema de Gestión de Citas para Hotel)
+# 1. Descripcion del Proyecto (Analisis de Requerimientos)
 
-**Autores:** Angel Uriel Monterrosas Gonzalez - Noe Tlachi Zenteno  
-**Matrícula:** 202339872 - 202162606  
-**Institución:** Benemérita Universidad Autónoma de Puebla (BUAP)  
-**Carrera:** Licenciatura en Ingeniería en Ciencias de la Computación  
-**Materia:** Base de Datos para Ingeniería  
-**Profesora:** Beltran Martínez Beatriz  
-**Fecha:** 16 de junio de 2026
+El objetivo es diseñar una base de datos relacional robusta para gestionar las reservas de un hotel. El diseño esta estrictamente enfocado en la integridad a nivel del motor de bases de datos, abarcando gestion de clientes, catalogos, tarifas dinamicas, politicas de cancelacion y auditoria.
+
+Se incluye un esquema de roles (Administrador y Recepcionista) para controlar el acceso a las transacciones y garantizar la seguridad de la informacion estructurada.
+
+## Requerimientos Funcionales (RF enfocados a BD)
+
+- **RF1 - Gestion de clientes:** Registro, modificacion y borrado logico de huespedes en la tabla principal.
+
+- **RF2 - Catalogo de tipos de habitacion:** Definicion de categorias y tarifas estacionales mediante restricciones de integridad.
+
+- **RF3 - Inventario de habitaciones:** Control de estado fisico en tiempo real (disponible, ocupada, mantenimiento).
+
+- **RF4 - Creacion de reservas:** Asignacion de fechas garantizando ausencia de solapamientos logicos. Se almacena una instantanea de datos del titular y se vincula la politica de cancelacion activa.
+
+- **RF5 - Cancelacion de reservas:** Liberacion de disponibilidad y aplicacion automatica de multas consultando el catalogo dinamico de politicas.
+
+- **RF6 - Servicios adicionales:** Inclusion de extras mediante una tabla puente que congela el precio al reservar.
+
+- **RF7 - Registro de pagos:** Control de abonos totales o parciales indicando metodo de pago en un historial transaccional.
+
+- **RF8 - Consulta de disponibilidad:** Busqueda logica de habitaciones libres calculada dinamicamente mediante algebra relacional sobre las reservas.
+
+- **RF9 - Facturacion al checkout:** Calculo de saldo pendiente consolidando tablas (noches + servicios - abonos - multas).
+
+- **RF10 - Historial de cambios:** Trigger o bitacora de auditoria para registrar mutaciones de estado de reservas y usuarios responsables.
+
+## Requerimientos No Funcionales Clave (RNF enfocados a BD)
+
+- **RNF1 - Consistencia:** Prevencion transaccional y bloqueos a nivel de base de datos para evitar dobles reservas. Uso de restricciones CHECK para validar fechas (salida > entrada).
+
+- **RNF2 - Seguridad:** Proteccion de datos financieros, guardando solo el metodo de pago sin datos sensibles. Uso exclusivo de hashes criptograficos para contraseñas.
+
+- **RNF3 - Escalabilidad:** Diseño fuertemente normalizado (3NF) para permitir la incorporacion de nuevas reglas de negocio sin refactorizar el esquema.
+
+## Roles y Permisos a nivel de Backend
+
+- **Administrador (ADMIN):** Acceso total. Gestion de usuarios (CRUD), catalogos (habitaciones, politicas, tarifas) y auditoria global de la base de datos.
+
+- **Recepcionista (RECEPCIONISTA):** Gestion operativa. CRUD de clientes, creacion/cancelacion de reservas, pagos y consultas de disponibilidad. Sin permisos de modificacion sobre catalogos o usuarios.
 
 ---
 
-## 1. Descripción del Proyecto (Análisis de Requerimientos)
-# Descripción del Proyecto (Análisis de Requerimientos)
+# 2. Evolucion del Modelo y Normalizacion
 
-El objetivo es diseñar una base de datos relacional robusta para gestionar las reservas de un hotel. El sistema abarca la gestión de clientes, catálogo de habitaciones con tarifas dinámicas por temporada, control de inventario, registro de servicios adicionales, pagos y un historial de auditoría. Se incluye un esquema de roles (Administrador y Recepcionista) para controlar el acceso a las funcionalidades.
+Para garantizar la integridad referencial y eliminar redundancias, el modelo conceptual inicial fue normalizado hasta la Tercera Forma Normal (3NF).
 
-## Requerimientos Funcionales (RF)
-
-- **RF1 - Gestión de clientes:** Registro, modificación y borrado lógico de huéspedes.
-- **RF2 - Catálogo de tipos de habitación:** Definición de categorías (simple, doble, suite) y tarifas estacionales (alta/baja).
-- **RF3 - Inventario de habitaciones:** Control de estado (disponible, ocupada, en mantenimiento) por cada unidad física.
-- **RF4 - Creación de reservas:** Asignación de fechas sin solapamientos, vinculando clientes y habitaciones. Además, al momento de crear la reserva se debe almacenar una copia de los datos del titular (nombre, apellidos, teléfono, correo) para conservar la información histórica.
-- **RF5 - Cancelación de reservas:** Liberación de habitaciones y aplicación de políticas de cancelación.
-- **RF6 - Servicios adicionales:** Inclusión de extras (desayuno, spa) con congelamiento de precios al momento de la reserva.
-- **RF7 - Registro de pagos:** Control de abonos totales o parciales indicando método de pago.
-- **RF8 - Consulta de disponibilidad:** Búsqueda ágil de habitaciones libres por rango de fechas.
-- **RF9 - Facturación al checkout:** Cálculo automático de saldo pendiente (noches + servicios - abonos).
-- **RF10 - Historial de cambios:** Auditoría para registrar qué usuario modificó el estado de una reserva y cuándo.
-
-## Requerimientos No Funcionales Clave (RNF)
-
-- **RNF3 - Consistencia:** Prevención a nivel de base de datos de dobles reservas y fechas ilógicas (salida antes de entrada).
-- **RNF5 - Seguridad:** Protección de datos financieros, guardando solo el método de pago sin datos sensibles de tarjetas. Además, las contraseñas de los usuarios se almacenan únicamente mediante un hash criptográfico (bcrypt/Argon2) para garantizar su confidencialidad.
-- **RNF6 - Escalabilidad:** Diseño normalizado que permite incorporar nuevas sucursales, habitaciones o servicios sin alterar el esquema base.
-
-## Roles y Permisos
-
-Se definen dos roles:
-
-### Administrador (ADMIN)
-
-- Acceso total a todas las funciones del sistema.
-- Gestión de usuarios (crear, modificar, eliminar) y asignación de roles.
-- Gestión de catálogos (tipos de habitación, tarifas, servicios).
-- Consulta y modificación de cualquier reserva.
-- Auditoría completa (historial).
-
-### Recepcionista (RECEPCIONISTA)
-
-- Gestión de clientes (crear, modificar, consultar).
-- Creación y cancelación de reservas (sobre las habitaciones disponibles).
-- Registro de pagos.
-- Consulta de disponibilidad.
-- No puede modificar tarifas, catálogos ni usuarios.
-
-## 2. Evolución del Modelo y Normalización
-
-Para garantizar la integridad referencial, evitar anomalías de actualización y eliminar redundancias, el modelo conceptual inicial fue sometido a un proceso de normalización hasta alcanzar la **Tercera Forma Normal (3NF)**.
+Se introdujo la entidad `politicas_cancelacion` para evitar tener reglas comerciales estaticas en el codigo PHP. Al crear la reserva, la politica se vincula directamente, garantizando la consistencia historica.
 
 ### 2.1 Modelo Entidad-Relación Inicial (Antes)
 
@@ -67,18 +57,11 @@ erDiagram
     USUARIOS {
         int id_usuario PK
         string nombre_usuario UK
-        string nombre
-        string apellido_paterno
-        string apellido_materno
         string contrasena_hash
         enum rol "ADMIN|RECEPCIONISTA"
     }
     CLIENTES {
         int id_cliente PK
-        string nombre
-        string apellido_paterno
-        string apellido_materno
-        string telefono
         string correo UK
         bool activo
     }
@@ -88,42 +71,27 @@ erDiagram
         int id_habitacion FK
         date fecha_entrada
         date fecha_salida
-        enum estado_reserva "ACTIVA|CONFIRMADA|CANCELADA|COMPLETADA"
-        datetime fecha_creacion
         decimal penalizacion
-        datetime fecha_cancelacion
         string nombre_titular
-        string apellido_paterno_titular
-        string apellido_materno_titular
-        string telefono_titular
-        string correo_titular
     }
     TIPOS_HABITACION {
         int id_tipo_habitacion PK
         string nombre
-        int capacidad
-        text descripcion
     }
     TARIFAS_TEMPORADA {
         int id_tarifa PK
         int id_tipo_habitacion FK
-        enum temporada "ALTA|BAJA"
         decimal precio_noche
-        date fecha_inicio
-        date fecha_fin
     }
     HABITACIONES {
         int id_habitacion PK
         int id_tipo_habitacion FK
-        int piso
-        enum estado_actual "DISPONIBLE|OCUPADA|MANTENIMIENTO"
-        bool activa
+        enum estado_actual
     }
     SERVICIOS {
         int id_servicio PK
         string nombre
         decimal precio_vigente
-        text descripcion
     }
     RESERVA_SERVICIOS {
         int id_reserva_servicio PK
@@ -134,19 +102,11 @@ erDiagram
     }
     PAGOS {
         int id_pago PK
-        int id_reserva FK
         decimal monto
-        datetime fecha_pago
-        enum metodo_pago "EFECTIVO|TARJETA|TRANSFERENCIA"
     }
     HISTORIAL_RESERVAS {
         int id_historial PK
-        int id_reserva FK
-        int id_usuario FK
-        string estado_anterior
         string estado_nuevo
-        datetime fecha_cambio
-        text comentario
     }
 
     USUARIOS ||--o{ HISTORIAL_RESERVAS : "registra"
@@ -163,70 +123,52 @@ erDiagram
 
 ### 2.2 Modelo Relacional Normalizado (Después)
 
-El siguiente diagrama de clases muestra el modelo relacional con todas las tablas, sus claves primarias (PK) y foráneas (FK), garantizando que cada tabla cumple con 3NF (atributos atómicos, sin dependencias parciales ni transitivas).
+Este diagrama refleja la estructura 3NF final. Los estados físicos se separan de la lógica transaccional, y las políticas de cancelación gobiernan las penalizaciones de las reservas.
 
 ```mermaid
 classDiagram
     class usuarios {
         +int id_usuario PK
         +string nombre_usuario UK
-        +string nombre
-        +string apellido_paterno
-        +string apellido_materno
         +string contrasena_hash
         +enum rol
     }
     class clientes {
         +int id_cliente PK
-        +string nombre
-        +string apellido_paterno
-        +string apellido_materno
-        +string telefono
         +string correo UK
         +bool activo
+    }
+    class politicas_cancelacion {
+        +int id_politica PK
+        +string nombre
+        +int horas_limite
+        +decimal porcentaje_multa
+        +bool activa
     }
     class reservas {
         +int id_reserva PK
         +int id_cliente FK
         +int id_habitacion FK
+        +int id_politica FK
         +date fecha_entrada
         +date fecha_salida
         +enum estado_reserva
-        +datetime fecha_creacion
         +decimal penalizacion
-        +datetime fecha_cancelacion
         +string nombre_titular
-        +string apellido_paterno_titular
-        +string apellido_materno_titular
-        +string telefono_titular
-        +string correo_titular
     }
     class tipos_habitacion {
         +int id_tipo_habitacion PK
         +string nombre
-        +int capacidad
-        +text descripcion
     }
     class tarifas_temporada {
         +int id_tarifa PK
         +int id_tipo_habitacion FK
-        +enum temporada
         +decimal precio_noche
-        +date fecha_inicio
-        +date fecha_fin
     }
     class habitaciones {
         +int id_habitacion PK
         +int id_tipo_habitacion FK
-        +int piso
         +enum estado_actual
-        +bool activa
-    }
-    class servicios {
-        +int id_servicio PK
-        +string nombre
-        +decimal precio_vigente
-        +text descripcion
     }
     class reserva_servicios {
         +int id_reserva_servicio PK
@@ -235,25 +177,26 @@ classDiagram
         +int cantidad
         +decimal precio_unitario
     }
+    class servicios {
+        +int id_servicio PK
+        +string nombre
+        +decimal precio_vigente
+    }
     class pagos {
         +int id_pago PK
         +int id_reserva FK
         +decimal monto
-        +datetime fecha_pago
-        +enum metodo_pago
     }
     class historial_reservas {
         +int id_historial PK
         +int id_reserva FK
         +int id_usuario FK
-        +string estado_anterior
         +string estado_nuevo
-        +datetime fecha_cambio
-        +text comentario
     }
 
     usuarios "1" --> "0..*" historial_reservas : "id_usuario"
     clientes "1" --> "0..*" reservas : "id_cliente"
+    politicas_cancelacion "1" --> "0..*" reservas : "id_politica"
     tipos_habitacion "1" --> "0..*" tarifas_temporada : "id_tipo_habitacion"
     tipos_habitacion "1" --> "0..*" habitaciones : "id_tipo_habitacion"
     habitaciones "1" --> "0..*" reservas : "id_habitacion"
@@ -272,162 +215,65 @@ classDiagram
 - Los campos como `nombre_titular`, etc., en reservas son copias históricas, no dependen de clientes para preservar la información.
 ## 3. Diccionario de Datos (Modelo Normalizado 3NF)
 
-A continuación, se define la estructura técnica de cada entidad en su estado final.
+A continuacion, se define la estructura tecnica de cada entidad asegurando dependencias exclusivas hacia la clave primaria.
 
-## Diccionario de Datos
+### Tablas de Catalogo y Maestras
 
-| Tabla | Descripción | Permisos |
-|-------|-------------|----------|
-| **usuarios** | Personal que gestiona el sistema. | ADMIN o RECEPCIONISTA |
+| Tabla | Columna | Tipo | Nulabilidad | Descripcion |
+| :--- | :--- | :--- | :--- | :--- |
+| **usuarios** | id_usuario | INT | NO NULO | PK, autoincrementable |
+| | nombre_usuario | VARCHAR(50) | NO NULO | UNICO |
+| | contrasena_hash | VARCHAR(255) | NO NULO | Hash encriptado (bcrypt/Argon2) |
+| | rol | ENUM | NO NULO | 'ADMIN' o 'RECEPCIONISTA' |
+| **clientes** | id_cliente | INT | NO NULO | PK, autoincrementable |
+| | correo | VARCHAR(100) | NULO | UNICO |
+| | activo | BOOLEAN | NO NULO | Borrado logico. DEFAULT TRUE |
+| **politicas_cancelacion** | id_politica | INT | NO NULO | PK, autoincrementable |
+| | nombre | VARCHAR(50) | NO NULO | Ej: "Estricta 48 hrs" |
+| | horas_limite | INT | NO NULO | Tiempo limite previo al Check-In |
+| | porcentaje_multa | DECIMAL(5,2) | NO NULO | Multa aplicable (0.00 a 100.00) |
+| **tipos_habitacion** | id_tipo_habitacion | INT | NO NULO | PK, autoincrementable |
+| | nombre | VARCHAR(50) | NO NULO | Categoria (Simple, Doble, Suite) |
 
-| Columna | Tipo | Nulabilidad | Descripción |
-|---------|------|-------------|-------------|
-| `id_usuario` | INT | NO NULO | PK, autoincrementable |
-| `nombre_usuario` | VARCHAR(50) | NO NULO | ÚNICO |
-| `nombre` | VARCHAR(50) | NO NULO | - |
-| `apellido_paterno` | VARCHAR(50) | NO NULO | - |
-| `apellido_materno` | VARCHAR(50) | NULO | - |
-| `contrasena_hash` | VARCHAR(255) | NO NULO | Almacena el hash de la contraseña |
-| `rol` | ENUM('ADMIN','RECEPCIONISTA') | NO NULO | - |
+### Tablas Operativas y de Inventario
 
----
+| Tabla | Columna | Tipo | Nulabilidad | Descripcion |
+| :--- | :--- | :--- | :--- | :--- |
+| **tarifas_temporada** | id_tarifa | INT | NO NULO | PK, autoincrementable |
+| | id_tipo_habitacion | INT | NO NULO | FK a tipos_habitacion |
+| | precio_noche | DECIMAL(10,2) | NO NULO | Costo base |
+| | fecha_inicio | DATE | NO NULO | Vigencia inicio |
+| | fecha_fin | DATE | NO NULO | Vigencia fin |
+| **habitaciones** | id_habitacion | INT | NO NULO | PK (Numero fisico del cuarto) |
+| | id_tipo_habitacion | INT | NO NULO | FK a tipos_habitacion |
+| | estado_actual | ENUM | NO NULO | 'DISPONIBLE','OCUPADA','MANTENIMIENTO' |
+| **servicios** | id_servicio | INT | NO NULO | PK, autoincrementable |
+| | precio_vigente | DECIMAL(10,2) | NO NULO | Costo actual para nuevos cargos |
 
-| Tabla | Descripción |
-|-------|-------------|
-| **clientes** | Datos de los huéspedes. Borrado lógico con `activo`. |
+### Entidades Transaccionales (Reservas)
 
-| Columna | Tipo | Nulabilidad | Descripción |
-|---------|------|-------------|-------------|
-| `id_cliente` | INT | NO NULO | PK, autoincrementable |
-| `nombre` | VARCHAR(50) | NO NULO | - |
-| `apellido_paterno` | VARCHAR(50) | NO NULO | - |
-| `apellido_materno` | VARCHAR(50) | NULO | - |
-| `telefono` | VARCHAR(20) | NULO | - |
-| `correo` | VARCHAR(100) | NULO | ÚNICO |
-| `activo` | BOOLEAN | NO NULO | DEFAULT TRUE |
-
----
-
-| Tabla | Descripción |
-|-------|-------------|
-| **tipos_habitacion** | Catálogo de categorías de habitaciones. |
-
-| Columna | Tipo | Nulabilidad | Descripción |
-|---------|------|-------------|-------------|
-| `id_tipo_habitacion` | INT | NO NULO | PK, autoincrementable |
-| `nombre` | VARCHAR(50) | NO NULO | - |
-| `capacidad` | INT | NO NULO | - |
-| `descripcion` | TEXT | NULO | - |
-
----
-
-| Tabla | Descripción |
-|-------|-------------|
-| **tarifas_temporada** | Precios por tipo de habitación y temporada. |
-
-| Columna | Tipo | Nulabilidad | Descripción |
-|---------|------|-------------|-------------|
-| `id_tarifa` | INT | NO NULO | PK, autoincrementable |
-| `id_tipo_habitacion` | INT | NO NULO | FK |
-| `temporada` | ENUM('ALTA','BAJA') | NO NULO | - |
-| `precio_noche` | DECIMAL(10,2) | NO NULO | - |
-| `fecha_inicio` | DATE | NO NULO | - |
-| `fecha_fin` | DATE | NO NULO | - |
-
----
-
-| Tabla | Descripción |
-|-------|-------------|
-| **habitaciones** | Registro físico de cada habitación. |
-
-| Columna | Tipo | Nulabilidad | Descripción |
-|---------|------|-------------|-------------|
-| `id_habitacion` | INT | NO NULO | PK, autoincrementable |
-| `id_tipo_habitacion` | INT | NO NULO | FK |
-| `piso` | INT | NO NULO | - |
-| `estado_actual` | ENUM('DISPONIBLE','OCUPADA','MANTENIMIENTO') | NO NULO | DEFAULT 'DISPONIBLE' |
-| `activa` | BOOLEAN | NO NULO | DEFAULT TRUE |
-
----
-
-| Tabla | Descripción |
-|-------|-------------|
-| **reservas** | Entidad central que vincula cliente, habitación y fechas. Incluye instantánea del titular. |
-
-| Columna | Tipo | Nulabilidad | Descripción |
-|---------|------|-------------|-------------|
-| `id_reserva` | INT | NO NULO | PK, autoincrementable |
-| `id_cliente` | INT | NO NULO | FK |
-| `id_habitacion` | INT | NO NULO | FK |
-| `fecha_entrada` | DATE | NO NULO | - |
-| `fecha_salida` | DATE | NO NULO | - |
-| `estado_reserva` | ENUM('ACTIVA','CONFIRMADA','CANCELADA','COMPLETADA') | NO NULO | DEFAULT 'ACTIVA' |
-| `fecha_creacion` | DATETIME | NO NULO | DEFAULT CURRENT_TIMESTAMP |
-| `penalizacion` | DECIMAL(10,2) | NULO | - |
-| `fecha_cancelacion` | DATETIME | NULO | - |
-| `nombre_titular` | VARCHAR(50) | NO NULO | Copia histórica |
-| `apellido_paterno_titular` | VARCHAR(50) | NO NULO | Copia histórica |
-| `apellido_materno_titular` | VARCHAR(50) | NULO | Copia histórica |
-| `telefono_titular` | VARCHAR(20) | NULO | Copia histórica |
-| `correo_titular` | VARCHAR(100) | NULO | Copia histórica |
-
----
-
-| Tabla | Descripción |
-|-------|-------------|
-| **servicios** | Catálogo de servicios extras. |
-
-| Columna | Tipo | Nulabilidad | Descripción |
-|---------|------|-------------|-------------|
-| `id_servicio` | INT | NO NULO | PK, autoincrementable |
-| `nombre` | VARCHAR(100) | NO NULO | - |
-| `precio_vigente` | DECIMAL(10,2) | NO NULO | - |
-| `descripcion` | TEXT | NULO | - |
-
----
-
-| Tabla | Descripción |
-|-------|-------------|
-| **reserva_servicios** | Tabla puente para servicios consumidos, con precio congelado. |
-
-| Columna | Tipo | Nulabilidad | Descripción |
-|---------|------|-------------|-------------|
-| `id_reserva_servicio` | INT | NO NULO | PK, autoincrementable |
-| `id_reserva` | INT | NO NULO | FK |
-| `id_servicio` | INT | NO NULO | FK |
-| `cantidad` | INT | NO NULO | - |
-| `precio_unitario` | DECIMAL(10,2) | NO NULO | Precio congelado al momento de la reserva |
-
----
-
-| Tabla | Descripción |
-|-------|-------------|
-| **pagos** | Registro de abonos a una reserva. |
-
-| Columna | Tipo | Nulabilidad | Descripción |
-|---------|------|-------------|-------------|
-| `id_pago` | INT | NO NULO | PK, autoincrementable |
-| `id_reserva` | INT | NO NULO | FK |
-| `monto` | DECIMAL(10,2) | NO NULO | - |
-| `fecha_pago` | DATETIME | NO NULO | DEFAULT CURRENT_TIMESTAMP |
-| `metodo_pago` | ENUM('EFECTIVO','TARJETA','TRANSFERENCIA') | NO NULO | - |
-
----
-
-| Tabla | Descripción |
-|-------|-------------|
-| **historial_reservas** | Bitácora de auditoría de cambios de estado. |
-
-| Columna | Tipo | Nulabilidad | Descripción |
-|---------|------|-------------|-------------|
-| `id_historial` | INT | NO NULO | PK, autoincrementable |
-| `id_reserva` | INT | NO NULO | FK |
-| `id_usuario` | INT | NO NULO | FK |
-| `estado_anterior` | VARCHAR(20) | NO NULO | - |
-| `estado_nuevo` | VARCHAR(20) | NO NULO | - |
-| `fecha_cambio` | DATETIME | NO NULO | DEFAULT CURRENT_TIMESTAMP |
-| `comentario` | TEXT | NULO | - |
----
+| Tabla | Columna | Tipo | Nulabilidad | Descripcion |
+| :--- | :--- | :--- | :--- | :--- |
+| **reservas** | id_reserva | INT | NO NULO | PK, autoincrementable |
+| | id_cliente | INT | NO NULO | FK a clientes |
+| | id_habitacion | INT | NO NULO | FK a habitaciones |
+| | id_politica | INT | NO NULO | FK (Politica comercial congelada) |
+| | fecha_entrada | DATE | NO NULO | Inicio de hospedaje |
+| | fecha_salida | DATE | NO NULO | Fin de hospedaje |
+| | estado_reserva | ENUM | NO NULO | 'ACTIVA','CONFIRMADA','CANCELADA','COMPLETADA' |
+| | penalizacion | DECIMAL(10,2) | NULO | Multa procesada en cancelacion |
+| | nombre_titular | VARCHAR(50) | NO NULO | Copia historica inmutable |
+| **reserva_servicios** | id_reserva_servicio | INT | NO NULO | PK, autoincrementable |
+| | id_reserva | INT | NO NULO | FK a reservas |
+| | id_servicio | INT | NO NULO | FK a servicios |
+| | precio_unitario | DECIMAL(10,2) | NO NULO | Costo congelado al momento del cargo |
+| **pagos** | id_pago | INT | NO NULO | PK, autoincrementable |
+| | monto | DECIMAL(10,2) | NO NULO | Dinero abonado a la cuenta |
+| | metodo_pago | ENUM | NO NULO | 'EFECTIVO','TARJETA','TRANSFERENCIA' |
+| **historial_reservas** | id_historial | INT | NO NULO | PK, autoincrementable (Auditoria) |
+| | estado_anterior | VARCHAR(20) | NO NULO | Estado previo |
+| | estado_nuevo | VARCHAR(20) | NO NULO | Estado actual tras el evento |
+| | id_usuario | INT | NO NULO | FK a usuarios (Quien lo modifico) |
 
 ## 4. Script de Base de Datos (SQL DDL)
 
@@ -436,28 +282,31 @@ El siguiente script crea la base de datos y todas las tablas respetando el orden
 
 ```sql
 -- Crear base de datos
-CREATE DATABASE IF NOT EXISTS hotel_reservas_db
-CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS hotel_reservas_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE hotel_reservas_db;
 
-
 -- 1. Tablas Catálogo e Independientes
-
+CREATE TABLE politicas_cancelacion (
+id_politica INT AUTO_INCREMENT PRIMARY KEY,
+nombre VARCHAR(50) NOT NULL,
+horas_limite INT NOT NULL CHECK (horas_limite >= 0),
+porcentaje_multa DECIMAL(5,2) NOT NULL CHECK (porcentaje_multa BETWEEN 0.00 AND 100.00),
+activa BOOLEAN NOT NULL DEFAULT TRUE
+) ENGINE=InnoDB;
 
 CREATE TABLE tipos_habitacion (
 id_tipo_habitacion INT AUTO_INCREMENT PRIMARY KEY,
 nombre VARCHAR(50) NOT NULL,
-capacidad INT NOT NULL,
+capacidad INT NOT NULL CHECK (capacidad > 0),
 descripcion TEXT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB;
 
 CREATE TABLE servicios (
 id_servicio INT AUTO_INCREMENT PRIMARY KEY,
 nombre VARCHAR(100) NOT NULL,
-precio_vigente DECIMAL(10,2) NOT NULL,
+precio_vigente DECIMAL(10,2) NOT NULL CHECK (precio_vigente >= 0),
 descripcion TEXT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB;
 
 CREATE TABLE clientes (
 id_cliente INT AUTO_INCREMENT PRIMARY KEY,
@@ -467,7 +316,7 @@ apellido_materno VARCHAR(50),
 telefono VARCHAR(20),
 correo VARCHAR(100) UNIQUE,
 activo BOOLEAN NOT NULL DEFAULT TRUE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB;
 
 CREATE TABLE usuarios (
 id_usuario INT AUTO_INCREMENT PRIMARY KEY,
@@ -477,51 +326,40 @@ apellido_paterno VARCHAR(50) NOT NULL,
 apellido_materno VARCHAR(50),
 contrasena_hash VARCHAR(255) NOT NULL,
 rol ENUM('ADMIN', 'RECEPCIONISTA') NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB;
 
--- ==========================================
 -- 2. Tablas con Dependencias Nivel 1
--- ==========================================
-
 CREATE TABLE tarifas_temporada (
 id_tarifa INT AUTO_INCREMENT PRIMARY KEY,
 id_tipo_habitacion INT NOT NULL,
 temporada ENUM('ALTA', 'BAJA') NOT NULL,
-precio_noche DECIMAL(10,2) NOT NULL,
+precio_noche DECIMAL(10,2) NOT NULL CHECK (precio_noche >= 0),
 fecha_inicio DATE NOT NULL,
 fecha_fin DATE NOT NULL,
-FOREIGN KEY (id_tipo_habitacion)
-REFERENCES tipos_habitacion(id_tipo_habitacion)
-ON DELETE CASCADE,
+FOREIGN KEY (id_tipo_habitacion) REFERENCES tipos_habitacion(id_tipo_habitacion) ON DELETE CASCADE,
 CHECK (fecha_fin >= fecha_inicio)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB;
 
 CREATE TABLE habitaciones (
 id_habitacion INT PRIMARY KEY,
 id_tipo_habitacion INT NOT NULL,
 piso INT NOT NULL,
-estado_actual ENUM('DISPONIBLE', 'OCUPADA', 'MANTENIMIENTO')
-NOT NULL DEFAULT 'DISPONIBLE',
+estado_actual ENUM('DISPONIBLE', 'OCUPADA', 'MANTENIMIENTO') NOT NULL DEFAULT 'DISPONIBLE',
 activa BOOLEAN NOT NULL DEFAULT TRUE,
-FOREIGN KEY (id_tipo_habitacion)
-REFERENCES tipos_habitacion(id_tipo_habitacion)
-ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+FOREIGN KEY (id_tipo_habitacion) REFERENCES tipos_habitacion(id_tipo_habitacion) ON DELETE CASCADE
+) ENGINE=InnoDB;
 
--- ==========================================
--- 3. Tabla Central: RESERVAS (con datos del titular)
--- ==========================================
-
+-- 3. Tabla Central: RESERVAS
 CREATE TABLE reservas (
 id_reserva INT AUTO_INCREMENT PRIMARY KEY,
 id_cliente INT NOT NULL,
 id_habitacion INT NOT NULL,
+id_politica INT NOT NULL,
 fecha_entrada DATE NOT NULL,
 fecha_salida DATE NOT NULL,
-estado_reserva ENUM('ACTIVA', 'CONFIRMADA', 'CANCELADA', 'COMPLETADA')
-NOT NULL DEFAULT 'ACTIVA',
+estado_reserva ENUM('ACTIVA', 'CONFIRMADA', 'CANCELADA', 'COMPLETADA') NOT NULL DEFAULT 'ACTIVA',
 fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-penalizacion DECIMAL(10,2),
+penalizacion DECIMAL(10,2) DEFAULT 0.00,
 fecha_cancelacion DATETIME,
 -- Datos del titular (instantánea histórica)
 nombre_titular VARCHAR(50) NOT NULL,
@@ -531,36 +369,31 @@ telefono_titular VARCHAR(20),
 correo_titular VARCHAR(100),
 FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE,
 FOREIGN KEY (id_habitacion) REFERENCES habitaciones(id_habitacion) ON DELETE CASCADE,
+FOREIGN KEY (id_politica) REFERENCES politicas_cancelacion(id_politica),
 CHECK (fecha_salida > fecha_entrada)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB;
 
--- Índice para búsqueda de disponibilidad por fechas
 CREATE INDEX idx_reservas_fechas ON reservas(fecha_entrada, fecha_salida);
 
--- ==========================================
--- 4. Tablas Operativas (Dependencias Nivel 3)
--- ==========================================
-
+-- 4. Tablas Operativas
 CREATE TABLE reserva_servicios (
 id_reserva_servicio INT AUTO_INCREMENT PRIMARY KEY,
 id_reserva INT NOT NULL,
 id_servicio INT NOT NULL,
-cantidad INT NOT NULL,
+cantidad INT NOT NULL CHECK (cantidad > 0),
 precio_unitario DECIMAL(10,2) NOT NULL,
 FOREIGN KEY (id_reserva) REFERENCES reservas(id_reserva) ON DELETE CASCADE,
-FOREIGN KEY (id_servicio) REFERENCES servicios(id_servicio) ON DELETE CASCADE,
-CHECK (cantidad > 0)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+FOREIGN KEY (id_servicio) REFERENCES servicios(id_servicio) ON DELETE CASCADE
+) ENGINE=InnoDB;
 
 CREATE TABLE pagos (
 id_pago INT AUTO_INCREMENT PRIMARY KEY,
 id_reserva INT NOT NULL,
-monto DECIMAL(10,2) NOT NULL,
+monto DECIMAL(10,2) NOT NULL CHECK (monto > 0),
 fecha_pago DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 metodo_pago ENUM('EFECTIVO', 'TARJETA', 'TRANSFERENCIA') NOT NULL,
-FOREIGN KEY (id_reserva) REFERENCES reservas(id_reserva) ON DELETE CASCADE,
-CHECK (monto > 0)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+FOREIGN KEY (id_reserva) REFERENCES reservas(id_reserva) ON DELETE CASCADE
+) ENGINE=InnoDB;
 
 CREATE TABLE historial_reservas (
 id_historial INT AUTO_INCREMENT PRIMARY KEY,
@@ -572,7 +405,18 @@ fecha_cambio DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 comentario TEXT,
 FOREIGN KEY (id_reserva) REFERENCES reservas(id_reserva) ON DELETE CASCADE,
 FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB;
+
+-- 5. Datos de Prueba
+INSERT INTO politicas_cancelacion (nombre, horas_limite, porcentaje_multa) VALUES
+('Flexible 24h', 24, 0.00), ('Estricta 48h', 48, 50.00);
+
+INSERT INTO tipos_habitacion (nombre, capacidad) VALUES
+('Simple', 1), ('Doble', 2), ('Suite', 4);
+
+INSERT INTO usuarios (nombre_usuario, nombre, apellido_paterno, contrasena_hash, rol) VALUES
+('admin', 'Admin', 'Principal', '$2y$10$e0MYzXjYx7ZQZJ2QZJ2QZuZQZJ2QZJ2QZJ2QZJ2QZJ2QZJ2QZJ2QZJ2', 'ADMIN');
+
 
 ```
 Datos de prueba:
@@ -603,227 +447,78 @@ INSERT INTO usuarios (nombre_usuario, nombre, apellido_paterno, apellido_materno
 proyecto-hotel/
 ├── backend/
 │   ├── config/
-│   │   └── database.php              # Configuración de conexión a BD
+│   │   └── database.php              # Configuración PDO/MySQL
 │   ├── models/
-│   │   ├── Usuario.php
 │   │   ├── Cliente.php
-│   │   ├── TipoHabitacion.php        # NUEVO
-│   │   ├── TarifaTemporada.php       # NUEVO
-│   │   ├── Habitacion.php
 │   │   ├── Reserva.php
-│   │   ├── Servicio.php
-│   │   ├── ReservaServicio.php       # NUEVO (tabla puente)
-│   │   ├── Pago.php
-│   │   └── Historial.php
+│   │   ├── PoliticaCancelacion.php   # Control de políticas
+│   │   └── (Otros modelos 1:1 con las tablas)
 │   ├── controllers/
-│   │   ├── AuthController.php        # Login/Logout
-│   │   ├── UsuarioController.php     # NUEVO (gestión de usuarios solo ADMIN)
-│   │   ├── ClienteController.php
-│   │   ├── TipoHabitacionController.php   # NUEVO (catálogo de tipos)
-│   │   ├── TarifaController.php           # NUEVO (tarifas por temporada)
-│   │   ├── HabitacionController.php  # Inventario físico
-│   │   ├── ReservaController.php     # Creación, cancelación, checkout, historial
-│   │   ├── ServicioController.php    # Catálogo de servicios
-│   │   ├── PagoController.php
-│   │   └── ReporteController.php
+│   │   ├── AuthController.php        # Gestión de login/hashes
+│   │   ├── ReservaController.php     # Lógica central del sistema
+│   │   └── (Otros controladores para CRUD y catálogos)
 │   ├── routes/
-│   │   └── api.php                   # Definición de rutas (endpoints)
-│   ├── helpers/
-│   │   ├── validator.php
-│   │   └── auth.php                  # Middleware de autenticación y roles
+│   │   └── api.php                   # Endpoints RESTful
 │   └── middleware/
-│       └── RoleMiddleware.php        # Verificación de permisos por rol
+│       └── RoleMiddleware.php        # Filtro de seguridad (RBAC)
 ├── frontend/
 │   ├── public/
 │   │   ├── css/
-│   │   │   └── style.css             # TODOS los estilos visuales del sistema
+│   │   │   └── style.css             # Estilos inmutables puros
 │   │   ├── js/
-│   │   │   └── app.js                # TODAS las validaciones en cliente (JavaScript)
-│   │   └── images/
+│   │   │   └── app.js                # Lógica JS para validación cliente
 │   ├── views/
-│   │   ├── auth/
-│   │   │   ├── login.php
-│   │   │   └── logout.php
-│   │   ├── dashboard/
-│   │   │   └── index.php
-│   │   ├── clientes/
-│   │   │   ├── listar.php
-│   │   │   ├── crear.php
-│   │   │   └── editar.php
-│   │   ├── catalogos/                     # NUEVO (módulo de catálogos)
-│   │   │   ├── tipos_habitacion.php       # Listado y gestión de tipos
-│   │   │   └── tarifas.php                # Gestión de tarifas por temporada
-│   │   ├── habitaciones/
-│   │   │   ├── disponibilidad.php
-│   │   │   └── gestion.php                # Inventario físico y estado
-│   │   ├── reservas/
-│   │   │   ├── crear.php
-│   │   │   ├── listar.php
-│   │   │   ├── detalle.php                # Incluye facturación y historial
-│   │   │   └── cancelar.php
-│   │   ├── servicios/
-│   │   │   └── catalogo.php               # Gestión de servicios adicionales
-│   │   ├── pagos/
-│   │   │   └── registrar.php
-│   │   ├── reportes/
-│   │   │   └── index.php                  # Reportes (diferenciados por rol)
-│   │   ├── usuarios/                      # Solo ADMIN
-│   │   │   ├── listar.php
-│   │   │   ├── crear.php
-│   │   │   └── editar.php                 # Incluye cambio de contraseña
-│   │   ├── historial/                     # NUEVO (auditoría global, solo ADMIN)
-│   │   │   └── index.php
-│   │   └── layout/
-│   │       ├── header.php
-│   │       └── footer.php
-│   └── index.php                         # Punto de entrada (redirige a login o dashboard)
+│   │   ├── catalogos/                # Vistas para habitaciones, tarifas y políticas
+│   │   ├── reservas/                 # Módulo de creación y facturación
+│   │   ├── usuarios/                 # Solo para ADMIN
+│   │   └── historial/                # Auditoría global
 ├── database/
-│   └── schema.sql                        # Script SQL completo (el generado arriba)
-├── docs/
-│   ├── manual_usuario.md
-│   └── manual_tecnico.md
-├── .htaccess                             # Configuración de rutas amigables
-├── composer.json                         # Dependencias PHP (si aplica)
+│   └── schema.sql                    # Script DDL consolidado
 └── README.md
 ``` 
-# Logica de Negocio y Flujos de Trabajo (Funcionalidad Detallada)
+## 6. Logica de Negocio y Flujos de Trabajo (Funcionalidad Detallada)
 
-Esta seccion describe como interactuan los componentes para cumplir con los requerimientos funcionales, garantizando la consistencia de los datos y la correcta ejecucion de los procesos.
+### 6.1. Autenticacion y Control de Clientes (RF1)
 
----
+- El backend procesa los logins contrastando la contraseña ingresada con el hash de la base de datos usando `password_verify()`. Una vez iniciada la sesion, se valida el rol para cada peticion.
+- El registro de clientes valida correos unicos mediante restricciones SQL. El borrado es exclusivamente logico (desactivacion del flag `activo`), protegiendo la integridad referencial de los historicos de ocupacion.
 
-## 6.1. Autenticacion de Usuarios (Login)
+### 6.2. Catalogos y Tarifas Dinamicas (RF2)
 
-- El formulario de login solicita `nombre_usuario` y `contrasena`.
-- El backend (controlador `AuthController`) recibe las credenciales, busca al usuario por `nombre_usuario` y, si existe, verifica la contraseña usando `password_verify()` contra el hash almacenado en `contrasena_hash`.
-- Si la verificacion es exitosa, se inicia la sesion y se guarda el rol del usuario para control de acceso.
-- En caso de fallo, se registra el intento (opcional) y se devuelve un error generico.
-- Las contraseñas nunca se almacenan en texto plano; solo el hash generado con `password_hash()` (bcrypt por defecto) se guarda en la base de datos.
+- Las tarifas por noche se establecen relacionando tipos de habitacion con temporadas estacionales. La base de datos impide ingresar rangos de fechas ilogicos mediante sentencias `CHECK`.
+- Al calcular una reserva nueva, se extrae el precio correspondiente a la fecha de ingreso, congelandose virtualmente para simplificar la facturacion de estancias combinadas.
 
----
+### 6.3. Inventario: Estado Fisico vs Disponibilidad Logica (RF3 y RF8)
 
-## 6.2. Gestion de Clientes (RF1)
+- El sistema opera con dos planos distintos. El campo `estado_actual` en la tabla `habitaciones` refleja unicamente la realidad fisica y cambia a `OCUPADA` solo durante el Check-In fisico.
+- La disponibilidad logica futura (reservar para meses proximos) no altera la tabla de habitaciones. El sistema calcula esta disponibilidad dinamicamente mediante cruces temporales en la tabla `reservas`.
 
-- El recepcionista o administrador puede dar de alta un nuevo cliente. Se validan campos (nombre, apellidos, telefono, correo) mediante JavaScript en el frontend.
-- El correo debe ser unico en la tabla `clientes` (restriccion `UNIQUE`). Si se intenta duplicar, el backend devuelve un error.
-- El borrado es logico: se cambia el campo `activo` a `FALSE`. Las reservas historicas permanecen, pero el cliente no aparecera en las busquedas activas.
-- Al modificar un cliente, se actualiza su registro. No se afectan reservas pasadas (los datos del titular ya fueron copiados en `reservas`).
+### 6.4. Creacion de Reservas y Congelamiento de Datos (RF4 y RF6)
 
----
+- Al reservar, el sistema verifica la disponibilidad logica mediante transacciones SQL aisladas. Se asigna la politica de cancelacion vigente y se copian los datos del titular para crear una instantanea historica.
+- Si se incluyen servicios extra, la tabla `reserva_servicios` almacena el `precio_vigente` del catalogo, blindando la cuenta del cliente ante incrementos posteriores en los precios del hotel.
 
-## 6.3. Catalogo de Tipos de Habitacion y Tarifas (RF2)
+### 6.5. Cancelacion Automatizada de Reservas (RF5)
 
-- El administrador gestiona los tipos de habitacion (`tipos_habitacion`) a traves del controlador `TipoHabitacionController` y las vistas de `catalogos/tipos_habitacion.php`.
-- Las tarifas por temporada se gestionan mediante `TarifaController` y la vista `catalogos/tarifas.php`.
-- Para cada tipo, se definen precios para temporada `ALTA` y `BAJA` con fechas de vigencia. El sistema valida que `fecha_fin >= fecha_inicio`.
-- Al calcular el costo de una reserva, se busca la tarifa que corresponda a la `fecha_entrada` de la estancia (se toma la tarifa vigente al dia de entrada como precio fijo para toda la estancia, simplificando).
-- Si un precio cambia, solo afecta a nuevas reservas, no a las ya creadas (porque el precio se congela en `reservas` a traves del calculo que se hace al momento de la reserva).
+- Al solicitarse una anulacion, el controlador PHP lee el `id_politica` vinculado a la reserva. Luego, compara las horas restantes hasta el Check-In contra las `horas_limite` de la politica.
+- Si procede la penalizacion, el sistema calcula el cargo automaticamente aplicando el `porcentaje_multa` sobre el costo de las noches, guardando el valor en la columna `penalizacion`.
 
----
+### 6.6. Facturacion, Pagos y Auditoria (RF7, RF9 y RF10)
 
-## 6.4. Inventario de Habitaciones (RF3)
-
-- Cada habitacion fisica (`habitaciones`) tiene un estado: `DISPONIBLE`, `OCUPADA` o `MANTENIMIENTO`.
-- Solo las habitaciones con estado `DISPONIBLE` y activa (`activa = TRUE`) pueden ser reservadas.
-- Cuando se crea una reserva, la habitacion pasa automaticamente a `OCUPADA` (si la reserva es confirmada). Al finalizar la estancia (checkout) se actualiza a `DISPONIBLE`.
-- El mantenimiento puede ser activado manualmente por el administrador a traves de `HabitacionController`.
+- El total a pagar en el Check-Out se procesa integrando el costo de hospedaje, los consumos extra, los abonos registrados y las posibles penalizaciones en una sola consulta.
+- Cada cambio de estado (crear, confirmar, cancelar, liquidar) dispara un registro en la tabla `historial_reservas`, documentando la estampa temporal, los estados alterados y el usuario responsable.
 
 ---
 
-## 6.5. Creacion de Reservas (RF4) – Paso a paso
+## 7. Control de Acceso por Rol (Permisos)
 
-1. El usuario (recepcionista o admin) selecciona un cliente existente o lo crea en el momento.
-2. Se eligen las fechas de entrada y salida. JavaScript valida que `fecha_salida > fecha_entrada`.
-3. Se consulta la disponibilidad (RF8) mediante una consulta SQL que verifica que no existan reservas activas o confirmadas para esa habitacion en el rango de fechas.
-4. Se selecciona una habitacion disponible del tipo deseado.
-5. Se calcula el costo de las noches: se obtiene la tarifa de `tarifas_temporada` para el tipo de habitacion y la temporada de la fecha de entrada.
-6. Se toman los datos del cliente y se copian en los campos `nombre_titular`, `apellido_paterno_titular`, etc., de la tabla `reservas`. Esto asegura que aunque el cliente modifique sus datos despues, la reserva conserve la informacion original.
-7. Se crea el registro en `reservas` con estado `ACTIVA` (o `CONFIRMADA` si se requiere un paso adicional). Se registra la fecha de creacion.
-8. La habitacion se marca como `OCUPADA` (si la reserva es confirmada) o se deja en `DISPONIBLE` si solo es una reserva provisional (según politica del hotel).
-9. Se genera un registro en `historial_reservas` con el cambio de estado (de `NULL` a `ACTIVA` o `CONFIRMADA`) y el usuario que la creo.
-10. Se pueden agregar servicios adicionales (RF6) en este paso o posteriormente.
-
----
-
-## 6.6. Servicios Adicionales (RF6)
-
-- Los servicios se eligen de un catalogo (`servicios`) gestionado por `ServicioController`.
-- Al agregarlos a una reserva, se guardan en `reserva_servicios` con el precio unitario vigente en ese momento (`precio_unitario`), congelando asi el costo.
-- Se permite modificar la cantidad de un servicio antes del checkout; el precio unitario permanece congelado.
-- El total de servicios se calcula como `SUM(cantidad * precio_unitario)` para la facturacion.
-
----
-
-## 6.7. Registro de Pagos (RF7)
-
-- Los pagos se registran en la tabla `pagos` asociados a una reserva. Se puede registrar un abono parcial o el total.
-- El metodo de pago se almacena (`EFECTIVO`, `TARJETA`, `TRANSFERENCIA`). No se almacenan datos sensibles (RNF5).
-- El monto debe ser positivo y no se valida contra el total adeudado en el momento del registro (se puede aceptar sobrepago, pero el sistema lo mostrara en el saldo).
-- Cada pago queda registrado con su fecha.
-
----
-
-## 6.8. Cancelacion de Reservas (RF5)
-
-- Solo se pueden cancelar reservas con estado `ACTIVA` o `CONFIRMADA`.
-- Al cancelar, se calcula una penalizacion según la politica (por ejemplo, si la cancelacion es con menos de 48 horas de anticipacion, se cobra el 50% de la primera noche). Este valor se almacena en `penalizacion`.
-- La habitacion se libera (cambia a `DISPONIBLE`) si no esta ocupada fisicamente.
-- El estado de la reserva pasa a `CANCELADA` y se registra la `fecha_cancelacion`.
-- Se genera un registro en `historial_reservas` indicando el cambio y el usuario que lo realizo.
-- Los pagos ya registrados permanecen; el saldo pendiente se recalcula para la facturacion final.
-
----
-
-## 6.9. Consulta de Disponibilidad (RF8)
-
-- Se realiza una consulta SQL que utiliza el indice `idx_reservas_fechas` para obtener rapidamente las habitaciones que no tienen reservas activas o confirmadas en el rango solicitado.
-- La consulta filtra tambien por `estado_actual = 'DISPONIBLE'` y `activa = TRUE`.
-- La interfaz muestra las habitaciones disponibles con su tipo y precio estimado.
-
----
-
-## 6.10. Facturacion al Checkout (RF9)
-
-Al finalizar la estancia, el sistema calcula el total a pagar:
-
-- **Costo de noches:** `DATEDIFF(fecha_salida, fecha_entrada) * precio_noche` (precio tomado de la tarifa correspondiente a la fecha de entrada).
-- **Total servicios:** suma de `cantidad * precio_unitario` de `reserva_servicios`.
-- **Total pagado:** suma de `monto` de `pagos`.
-- **Saldo pendiente:** `costo_noches + total_servicios - total_pagado - penalizacion` (si aplica).
-
-El sistema presenta esta factura al recepcionista, quien puede registrar un pago final para saldar la cuenta.
-
-Una vez saldada, se cambia el estado de la reserva a `COMPLETADA` y la habitacion se libera (`DISPONIBLE`).
-
-Se registra el evento en el historial.
-
----
-
-## 6.11. Auditoria (RF10)
-
-- Cada cambio de estado de una reserva (creacion, confirmacion, cancelacion, checkout) se registra en `historial_reservas`.
-- Se almacena el estado anterior, el nuevo, el usuario que realizo el cambio y un comentario opcional.
-- Esto permite rastrear cualquier modificacion y es visible solo para el administrador (y en parte para el recepcionista sobre sus propias reservas).
-- Se ha añadido una vista `frontend/views/historial/index.php` (solo ADMIN) para consultar el historial global de todas las reservas, con filtros por fecha y usuario.
-
----
-
-## 6.12. Gestion de Usuarios (solo ADMIN)
-
-- El administrador puede listar, crear, editar y eliminar usuarios a traves de `UsuarioController` y las vistas en `frontend/views/usuarios/`.
-- Al crear o editar un usuario, se puede asignar el rol (`ADMIN` o `RECEPCIONISTA`) y establecer o cambiar la contraseña (si se proporciona una nueva, se genera su hash).
-- Esta funcionalidad no esta disponible para el recepcionista.
-
----
-
-## 6.13. Consistencia y Prevencion de Anomalias
-
-- La base de datos utiliza claves foraneas con `ON DELETE CASCADE` para mantener la integridad referencial, pero se complementa con restricciones `CHECK` y logica de aplicacion.
-- Para evitar dobles reservas, la consulta de disponibilidad se ejecuta dentro de una transaccion al momento de crear la reserva, bloqueando la habitacion (nivel de aislamiento `READ COMMITTED` o `SERIALIZABLE` según el motor).
-- Las fechas se validan tanto en frontend (JS) como en backend (PHP) y en la base de datos (`CHECK`).
-- Los precios se congelan al momento de la reserva, evitando que cambios posteriores en tarifas o servicios afecten las reservas ya creadas.
-
----
+| Modulo / Funcionalidad | Administrador (ADMIN) | Recepcionista (RECEPCIONISTA) |
+|------------------------|----------------------|-------------------------------|
+| Clientes y Reservas | Acceso Total (CRUD) | Crear, Editar, Cancelar (Propias) |
+| Inventario Fisico | Configuracion de Mantenimiento | Operacion (Check-In / Out) |
+| Catalogos y Politicas | Crear, Editar y Eliminar | Solo Lectura |
+| Servicios y Pagos | Gestion Total de Cargos | Asignacion en Reservas Activas |
+| Historial y Usuarios | Acceso y Auditoria Global | Lectura de Historial Propio |
 
 ## Estrategia de Validacion y Estilos (Separacion de Capas)
 
@@ -851,24 +546,7 @@ Para garantizar un codigo limpio, mantenible y alineado con las buenas practicas
 
 ---
 
-## 7. Control de Acceso por Rol (Permisos)
 
-| Modulo / Funcionalidad | Administrador (ADMIN) | Recepcionista (RECEPCIONISTA) |
-|------------------------|----------------------|-------------------------------|
-| Autenticacion (Login con usuario y contraseña) | Si, verifica hash | Si, verifica hash |
-| Dashboard | Visualizacion completa | Visualizacion resumida |
-| Clientes | Crear, Leer, Actualizar, Borrar logico | Crear, Leer, Actualizar, Borrar logico |
-| Tipos de Habitacion (catalogo) | Crear, Leer, Actualizar, Eliminar | Solo lectura |
-| Tarifas Temporada (catalogo) | Crear, Leer, Actualizar, Eliminar | Solo lectura |
-| Habitaciones (inventario fisico) | Crear, Leer, Actualizar, Eliminar | Leer, actualizar estado (disponible/ocupada) |
-| Reservas | Crear, Leer, Actualizar, Cancelar, Completar | Crear, Leer, Actualizar, Cancelar (solo propias) |
-| Servicios (catalogo) | Crear, Leer, Actualizar, Eliminar | Solo lectura |
-| Reserva-Servicios (asignacion) | Gestionar (añadir/quitar) | Gestionar (añadir/quitar) sobre reservas propias |
-| Pagos | Registrar, Leer, Anular | Registrar, Leer, Anular (sobre reservas propias) |
-| Historial / Auditoria | Lectura completa (global) | Solo lectura de reservas propias |
-| Usuarios (incluye cambio de contraseña) | Crear, Leer, Actualizar, Eliminar | No permitido |
-| Reportes | Todos los reportes | Solo reportes basicos de ocupacion |
-| Configuracion | Acceso total | No permitido |
 
 ## 8. Consultas Útiles para Validación y Reportes(tomar como ejemplo.)
 Verificar disponibilidad de una habitación en un rango de fechas:
