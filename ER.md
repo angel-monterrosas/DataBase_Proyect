@@ -603,118 +603,130 @@ INSERT INTO usuarios (nombre_usuario, nombre, apellido_paterno, apellido_materno
 proyecto-hotel/
 ├── backend/
 │   ├── config/
-│   │   └── database.php          # Configuración de conexión a BD
+│   │   └── database.php              # Configuración de conexión a BD
 │   ├── models/
 │   │   ├── Usuario.php
 │   │   ├── Cliente.php
+│   │   ├── TipoHabitacion.php        # NUEVO
+│   │   ├── TarifaTemporada.php       # NUEVO
 │   │   ├── Habitacion.php
 │   │   ├── Reserva.php
 │   │   ├── Servicio.php
+│   │   ├── ReservaServicio.php       # NUEVO (tabla puente)
 │   │   ├── Pago.php
 │   │   └── Historial.php
 │   ├── controllers/
-│   │   ├── AuthController.php    # Maneja login/logout y verificación de contraseñas
+│   │   ├── AuthController.php        # Login/Logout
+│   │   ├── UsuarioController.php     # NUEVO (gestión de usuarios solo ADMIN)
 │   │   ├── ClienteController.php
-│   │   ├── ReservaController.php
-│   │   ├── HabitacionController.php
-│   │   ├── ServicioController.php
+│   │   ├── TipoHabitacionController.php   # NUEVO (catálogo de tipos)
+│   │   ├── TarifaController.php           # NUEVO (tarifas por temporada)
+│   │   ├── HabitacionController.php  # Inventario físico
+│   │   ├── ReservaController.php     # Creación, cancelación, checkout, historial
+│   │   ├── ServicioController.php    # Catálogo de servicios
 │   │   ├── PagoController.php
 │   │   └── ReporteController.php
 │   ├── routes/
-│   │   └── api.php               # Definición de rutas (endpoints)
+│   │   └── api.php                   # Definición de rutas (endpoints)
 │   ├── helpers/
 │   │   ├── validator.php
-│   │   └── auth.php              # Middleware de autenticación y roles
+│   │   └── auth.php                  # Middleware de autenticación y roles
 │   └── middleware/
-│       └── RoleMiddleware.php    # Verificación de permisos por rol
+│       └── RoleMiddleware.php        # Verificación de permisos por rol
 ├── frontend/
 │   ├── public/
 │   │   ├── css/
-│   │   │   └── style.css         # TODOS los estilos visuales del sistema
+│   │   │   └── style.css             # TODOS los estilos visuales del sistema
 │   │   ├── js/
-│   │   │   └── app.js            # TODAS las validaciones de campos en cliente (JavaScript)
+│   │   │   └── app.js                # TODAS las validaciones en cliente (JavaScript)
 │   │   └── images/
 │   ├── views/
 │   │   ├── auth/
 │   │   │   ├── login.php
 │   │   │   └── logout.php
+│   │   ├── dashboard/
+│   │   │   └── index.php
 │   │   ├── clientes/
 │   │   │   ├── listar.php
 │   │   │   ├── crear.php
 │   │   │   └── editar.php
+│   │   ├── catalogos/                     # NUEVO (módulo de catálogos)
+│   │   │   ├── tipos_habitacion.php       # Listado y gestión de tipos
+│   │   │   └── tarifas.php                # Gestión de tarifas por temporada
 │   │   ├── habitaciones/
 │   │   │   ├── disponibilidad.php
-│   │   │   └── gestion.php
+│   │   │   └── gestion.php                # Inventario físico y estado
 │   │   ├── reservas/
 │   │   │   ├── crear.php
 │   │   │   ├── listar.php
-│   │   │   ├── detalle.php
+│   │   │   ├── detalle.php                # Incluye facturación y historial
 │   │   │   └── cancelar.php
 │   │   ├── servicios/
-│   │   │   └── catalogo.php
+│   │   │   └── catalogo.php               # Gestión de servicios adicionales
 │   │   ├── pagos/
 │   │   │   └── registrar.php
 │   │   ├── reportes/
-│   │   │   └── index.php
-│   │   ├── usuarios/             # Solo ADMIN
+│   │   │   └── index.php                  # Reportes (diferenciados por rol)
+│   │   ├── usuarios/                      # Solo ADMIN
 │   │   │   ├── listar.php
 │   │   │   ├── crear.php
-│   │   │   └── editar.php
-│   │   ├── dashboard/
+│   │   │   └── editar.php                 # Incluye cambio de contraseña
+│   │   ├── historial/                     # NUEVO (auditoría global, solo ADMIN)
 │   │   │   └── index.php
 │   │   └── layout/
 │   │       ├── header.php
 │   │       └── footer.php
-│   └── index.php                 # Punto de entrada (redirige a login o dashboard)
+│   └── index.php                         # Punto de entrada (redirige a login o dashboard)
 ├── database/
-│   └── schema.sql                # Script SQL completo (el generado arriba)
+│   └── schema.sql                        # Script SQL completo (el generado arriba)
 ├── docs/
 │   ├── manual_usuario.md
 │   └── manual_tecnico.md
-├── .htaccess                     # Configuración de rutas amigables
-├── composer.json                 # Dependencias PHP (si aplica)
+├── .htaccess                             # Configuración de rutas amigables
+├── composer.json                         # Dependencias PHP (si aplica)
 └── README.md
 ``` 
-# Lógica de Negocio y Flujos de Trabajo (Funcionalidad Detallada)
+# Logica de Negocio y Flujos de Trabajo (Funcionalidad Detallada)
 
-Esta sección describe cómo interactúan los componentes para cumplir con los requerimientos funcionales, garantizando la consistencia de los datos y la correcta ejecución de los procesos.
+Esta seccion describe como interactuan los componentes para cumplir con los requerimientos funcionales, garantizando la consistencia de los datos y la correcta ejecucion de los procesos.
 
 ---
 
-## 6.1. Autenticacion de Usuarios (Login) – Incorporacion de contraseña
+## 6.1. Autenticacion de Usuarios (Login)
 
 - El formulario de login solicita `nombre_usuario` y `contrasena`.
 - El backend (controlador `AuthController`) recibe las credenciales, busca al usuario por `nombre_usuario` y, si existe, verifica la contraseña usando `password_verify()` contra el hash almacenado en `contrasena_hash`.
-- Si la verificación es exitosa, se inicia la sesión y se guarda el rol del usuario para control de acceso.
-- En caso de fallo, se registra el intento (opcional) y se devuelve un error genérico.
+- Si la verificacion es exitosa, se inicia la sesion y se guarda el rol del usuario para control de acceso.
+- En caso de fallo, se registra el intento (opcional) y se devuelve un error generico.
 - Las contraseñas nunca se almacenan en texto plano; solo el hash generado con `password_hash()` (bcrypt por defecto) se guarda en la base de datos.
 
 ---
 
 ## 6.2. Gestion de Clientes (RF1)
 
-- El recepcionista o administrador puede dar de alta un nuevo cliente. Se validan campos (nombre, apellidos, teléfono, correo) mediante JavaScript en el frontend.
-- El correo debe ser único en la tabla `clientes` (restricción `UNIQUE`). Si se intenta duplicar, el backend devuelve un error.
-- El borrado es lógico: se cambia el campo `activo` a `FALSE`. Las reservas históricas permanecen, pero el cliente no aparecerá en las búsquedas activas.
+- El recepcionista o administrador puede dar de alta un nuevo cliente. Se validan campos (nombre, apellidos, telefono, correo) mediante JavaScript en el frontend.
+- El correo debe ser unico en la tabla `clientes` (restriccion `UNIQUE`). Si se intenta duplicar, el backend devuelve un error.
+- El borrado es logico: se cambia el campo `activo` a `FALSE`. Las reservas historicas permanecen, pero el cliente no aparecera en las busquedas activas.
 - Al modificar un cliente, se actualiza su registro. No se afectan reservas pasadas (los datos del titular ya fueron copiados en `reservas`).
 
 ---
 
 ## 6.3. Catalogo de Tipos de Habitacion y Tarifas (RF2)
 
-- El administrador gestiona los tipos de habitación (`tipos_habitacion`) y sus tarifas por temporada (`tarifas_temporada`).
+- El administrador gestiona los tipos de habitacion (`tipos_habitacion`) a traves del controlador `TipoHabitacionController` y las vistas de `catalogos/tipos_habitacion.php`.
+- Las tarifas por temporada se gestionan mediante `TarifaController` y la vista `catalogos/tarifas.php`.
 - Para cada tipo, se definen precios para temporada `ALTA` y `BAJA` con fechas de vigencia. El sistema valida que `fecha_fin >= fecha_inicio`.
-- Al calcular el costo de una reserva, se busca la tarifa que corresponda a la `fecha_entrada` de la estancia (si la estancia abarca varios días, se podría prorratear, pero en este diseño se toma la tarifa vigente al día de entrada como precio fijo para toda la estancia, simplificando).
-- Si un precio cambia, solo afecta a nuevas reservas, no a las ya creadas (porque el precio se congela en `reservas` a través del cálculo que se hace al momento de la reserva).
+- Al calcular el costo de una reserva, se busca la tarifa que corresponda a la `fecha_entrada` de la estancia (se toma la tarifa vigente al dia de entrada como precio fijo para toda la estancia, simplificando).
+- Si un precio cambia, solo afecta a nuevas reservas, no a las ya creadas (porque el precio se congela en `reservas` a traves del calculo que se hace al momento de la reserva).
 
 ---
 
 ## 6.4. Inventario de Habitaciones (RF3)
 
-- Cada habitación física (`habitaciones`) tiene un estado: `DISPONIBLE`, `OCUPADA` o `MANTENIMIENTO`.
+- Cada habitacion fisica (`habitaciones`) tiene un estado: `DISPONIBLE`, `OCUPADA` o `MANTENIMIENTO`.
 - Solo las habitaciones con estado `DISPONIBLE` y activa (`activa = TRUE`) pueden ser reservadas.
-- Cuando se crea una reserva, la habitación pasa automáticamente a `OCUPADA` (si la reserva es confirmada). Al finalizar la estancia (checkout) se actualiza a `DISPONIBLE`.
-- El mantenimiento puede ser activado manualmente por el administrador.
+- Cuando se crea una reserva, la habitacion pasa automaticamente a `OCUPADA` (si la reserva es confirmada). Al finalizar la estancia (checkout) se actualiza a `DISPONIBLE`.
+- El mantenimiento puede ser activado manualmente por el administrador a traves de `HabitacionController`.
 
 ---
 
@@ -722,30 +734,31 @@ Esta sección describe cómo interactúan los componentes para cumplir con los r
 
 1. El usuario (recepcionista o admin) selecciona un cliente existente o lo crea en el momento.
 2. Se eligen las fechas de entrada y salida. JavaScript valida que `fecha_salida > fecha_entrada`.
-3. Se consulta la disponibilidad (RF8) mediante una consulta SQL que verifica que no existan reservas activas o confirmadas para esa habitación en el rango de fechas.
-4. Se selecciona una habitación disponible del tipo deseado.
-5. Se calcula el costo de las noches: se obtiene la tarifa de `tarifas_temporada` para el tipo de habitación y la temporada de la fecha de entrada.
-6. Se toman los datos del cliente y se copian en los campos `nombre_titular`, `apellido_paterno_titular`, etc., de la tabla `reservas`. Esto asegura que aunque el cliente modifique sus datos después, la reserva conserve la información original.
-7. Se crea el registro en `reservas` con estado `ACTIVA` (o `CONFIRMADA` si se requiere un paso adicional). Se registra la fecha de creación.
-8. La habitación se marca como `OCUPADA` (si la reserva es confirmada) o se deja en `DISPONIBLE` si solo es una reserva provisional (según política del hotel).
-9. Se genera un registro en `historial_reservas` con el cambio de estado (de `NULL` a `ACTIVA` o `CONFIRMADA`) y el usuario que la creó.
+3. Se consulta la disponibilidad (RF8) mediante una consulta SQL que verifica que no existan reservas activas o confirmadas para esa habitacion en el rango de fechas.
+4. Se selecciona una habitacion disponible del tipo deseado.
+5. Se calcula el costo de las noches: se obtiene la tarifa de `tarifas_temporada` para el tipo de habitacion y la temporada de la fecha de entrada.
+6. Se toman los datos del cliente y se copian en los campos `nombre_titular`, `apellido_paterno_titular`, etc., de la tabla `reservas`. Esto asegura que aunque el cliente modifique sus datos despues, la reserva conserve la informacion original.
+7. Se crea el registro en `reservas` con estado `ACTIVA` (o `CONFIRMADA` si se requiere un paso adicional). Se registra la fecha de creacion.
+8. La habitacion se marca como `OCUPADA` (si la reserva es confirmada) o se deja en `DISPONIBLE` si solo es una reserva provisional (según politica del hotel).
+9. Se genera un registro en `historial_reservas` con el cambio de estado (de `NULL` a `ACTIVA` o `CONFIRMADA`) y el usuario que la creo.
 10. Se pueden agregar servicios adicionales (RF6) en este paso o posteriormente.
 
 ---
 
 ## 6.6. Servicios Adicionales (RF6)
 
-- Los servicios se eligen de un catálogo (`servicios`). Al agregarlos a una reserva, se guardan en `reserva_servicios` con el precio unitario vigente en ese momento (`precio_unitario`), congelando así el costo.
+- Los servicios se eligen de un catalogo (`servicios`) gestionado por `ServicioController`.
+- Al agregarlos a una reserva, se guardan en `reserva_servicios` con el precio unitario vigente en ese momento (`precio_unitario`), congelando asi el costo.
 - Se permite modificar la cantidad de un servicio antes del checkout; el precio unitario permanece congelado.
-- El total de servicios se calcula como `SUM(cantidad * precio_unitario)` para la facturación.
+- El total de servicios se calcula como `SUM(cantidad * precio_unitario)` para la facturacion.
 
 ---
 
 ## 6.7. Registro de Pagos (RF7)
 
 - Los pagos se registran en la tabla `pagos` asociados a una reserva. Se puede registrar un abono parcial o el total.
-- El método de pago se almacena (`EFECTIVO`, `TARJETA`, `TRANSFERENCIA`). No se almacenan datos sensibles (RNF5).
-- El monto debe ser positivo y no se valida contra el total adeudado en el momento del registro (se puede aceptar sobrepago, pero el sistema lo mostrará en el saldo).
+- El metodo de pago se almacena (`EFECTIVO`, `TARJETA`, `TRANSFERENCIA`). No se almacenan datos sensibles (RNF5).
+- El monto debe ser positivo y no se valida contra el total adeudado en el momento del registro (se puede aceptar sobrepago, pero el sistema lo mostrara en el saldo).
 - Cada pago queda registrado con su fecha.
 
 ---
@@ -753,18 +766,18 @@ Esta sección describe cómo interactúan los componentes para cumplir con los r
 ## 6.8. Cancelacion de Reservas (RF5)
 
 - Solo se pueden cancelar reservas con estado `ACTIVA` o `CONFIRMADA`.
-- Al cancelar, se calcula una penalización según la política (por ejemplo, si la cancelación es con menos de 48 horas de anticipación, se cobra el 50% de la primera noche). Este valor se almacena en `penalizacion`.
-- La habitación se libera (cambia a `DISPONIBLE`) si no está ocupada físicamente.
+- Al cancelar, se calcula una penalizacion según la politica (por ejemplo, si la cancelacion es con menos de 48 horas de anticipacion, se cobra el 50% de la primera noche). Este valor se almacena en `penalizacion`.
+- La habitacion se libera (cambia a `DISPONIBLE`) si no esta ocupada fisicamente.
 - El estado de la reserva pasa a `CANCELADA` y se registra la `fecha_cancelacion`.
-- Se genera un registro en `historial_reservas` indicando el cambio y el usuario que lo realizó.
-- Los pagos ya registrados permanecen; el saldo pendiente se recalcula para la facturación final.
+- Se genera un registro en `historial_reservas` indicando el cambio y el usuario que lo realizo.
+- Los pagos ya registrados permanecen; el saldo pendiente se recalcula para la facturacion final.
 
 ---
 
 ## 6.9. Consulta de Disponibilidad (RF8)
 
-- Se realiza una consulta SQL que utiliza el índice `idx_reservas_fechas` para obtener rápidamente las habitaciones que no tienen reservas activas o confirmadas en el rango solicitado.
-- La consulta filtra también por `estado_actual = 'DISPONIBLE'` y `activa = TRUE`.
+- Se realiza una consulta SQL que utiliza el indice `idx_reservas_fechas` para obtener rapidamente las habitaciones que no tienen reservas activas o confirmadas en el rango solicitado.
+- La consulta filtra tambien por `estado_actual = 'DISPONIBLE'` y `activa = TRUE`.
 - La interfaz muestra las habitaciones disponibles con su tipo y precio estimado.
 
 ---
@@ -780,7 +793,7 @@ Al finalizar la estancia, el sistema calcula el total a pagar:
 
 El sistema presenta esta factura al recepcionista, quien puede registrar un pago final para saldar la cuenta.
 
-Una vez saldada, se cambia el estado de la reserva a `COMPLETADA` y la habitación se libera (`DISPONIBLE`).
+Una vez saldada, se cambia el estado de la reserva a `COMPLETADA` y la habitacion se libera (`DISPONIBLE`).
 
 Se registra el evento en el historial.
 
@@ -788,16 +801,25 @@ Se registra el evento en el historial.
 
 ## 6.11. Auditoria (RF10)
 
-- Cada cambio de estado de una reserva (creación, confirmación, cancelación, checkout) se registra en `historial_reservas`.
-- Se almacena el estado anterior, el nuevo, el usuario que realizó el cambio y un comentario opcional.
-- Esto permite rastrear cualquier modificación y es visible solo para el administrador (y en parte para el recepcionista sobre sus propias reservas).
+- Cada cambio de estado de una reserva (creacion, confirmacion, cancelacion, checkout) se registra en `historial_reservas`.
+- Se almacena el estado anterior, el nuevo, el usuario que realizo el cambio y un comentario opcional.
+- Esto permite rastrear cualquier modificacion y es visible solo para el administrador (y en parte para el recepcionista sobre sus propias reservas).
+- Se ha añadido una vista `frontend/views/historial/index.php` (solo ADMIN) para consultar el historial global de todas las reservas, con filtros por fecha y usuario.
 
 ---
 
-## 6.12. Consistencia y Prevencion de Anomalias
+## 6.12. Gestion de Usuarios (solo ADMIN)
 
-- La base de datos utiliza claves foráneas con `ON DELETE CASCADE` para mantener la integridad referencial, pero se complementa con restricciones `CHECK` y lógica de aplicación.
-- Para evitar dobles reservas, la consulta de disponibilidad se ejecuta dentro de una transacción al momento de crear la reserva, bloqueando la habitación (nivel de aislamiento `READ COMMITTED` o `SERIALIZABLE` según el motor).
+- El administrador puede listar, crear, editar y eliminar usuarios a traves de `UsuarioController` y las vistas en `frontend/views/usuarios/`.
+- Al crear o editar un usuario, se puede asignar el rol (`ADMIN` o `RECEPCIONISTA`) y establecer o cambiar la contraseña (si se proporciona una nueva, se genera su hash).
+- Esta funcionalidad no esta disponible para el recepcionista.
+
+---
+
+## 6.13. Consistencia y Prevencion de Anomalias
+
+- La base de datos utiliza claves foraneas con `ON DELETE CASCADE` para mantener la integridad referencial, pero se complementa con restricciones `CHECK` y logica de aplicacion.
+- Para evitar dobles reservas, la consulta de disponibilidad se ejecuta dentro de una transaccion al momento de crear la reserva, bloqueando la habitacion (nivel de aislamiento `READ COMMITTED` o `SERIALIZABLE` según el motor).
 - Las fechas se validan tanto en frontend (JS) como en backend (PHP) y en la base de datos (`CHECK`).
 - Los precios se congelan al momento de la reserva, evitando que cambios posteriores en tarifas o servicios afecten las reservas ya creadas.
 
@@ -805,27 +827,29 @@ Se registra el evento en el historial.
 
 ## Estrategia de Validacion y Estilos (Separacion de Capas)
 
-Para garantizar un código limpio, mantenible y alineado con las buenas prácticas de desarrollo web, se establece una separación tajante entre la lógica de presentación (frontend) y la lógica de negocio (backend).
+Para garantizar un codigo limpio, mantenible y alineado con las buenas practicas de desarrollo web, se establece una separacion tajante entre la logica de presentacion (frontend) y la logica de negocio (backend).
 
 ### Validaciones con JavaScript (Frontend)
 
-- Todas las validaciones de campos en el lado del cliente se realizarán **EXCLUSIVAMENTE** mediante JavaScript, alojado en el archivo `frontend/public/js/app.js`.
-- Esto incluye: verificación de campos obligatorios, formato de correo electrónico, longitud de números telefónicos, fechas lógicas (que la fecha de salida sea posterior a la de entrada), montos positivos y formatos de números decimales.
-- El objetivo es proporcionar retroalimentación inmediata al usuario y reducir el envío de peticiones innecesarias al servidor, mejorando la experiencia de usuario.
+- Todas las validaciones de campos en el lado del cliente se realizaran **EXCLUSIVAMENTE** mediante JavaScript, alojado en el archivo `frontend/public/js/app.js`.
+- Esto incluye: verificacion de campos obligatorios, formato de correo electronico, longitud de numeros telefonicos, fechas logicas (que la fecha de salida sea posterior a la de entrada), montos positivos y formatos de numeros decimales.
+- El objetivo es proporcionar retroalimentacion inmediata al usuario y reducir el envio de peticiones innecesarias al servidor, mejorando la experiencia de usuario.
 
 ### Estilos y Diseno con CSS (Frontend)
 
-- Todo el diseño visual, layout, colores, tipografías, efectos de hover, sombras y responsividad se definirán **EXCLUSIVAMENTE** mediante hojas de estilo CSS, alojadas en el archivo `frontend/public/css/style.css`.
-- Las reglas se aplicarán mediante clases e identificadores en el HTML. No se permitirá el uso de estilos en línea (`style="..."`) ni etiquetas `<style>` dentro de las vistas PHP para mantener la consistencia y facilitar el mantenimiento.
+- Todo el diseno visual, layout, colores, tipografias, efectos de hover, sombras y responsividad se definiran **EXCLUSIVAMENTE** mediante hojas de estilo CSS, alojadas en el archivo `frontend/public/css/style.css`.
+- Las reglas se aplicaran mediante clases e identificadores en el HTML. No se permitira el uso de estilos en linea (`style="..."`) ni etiquetas `<style>` dentro de las vistas PHP para mantener la consistencia y facilitar el mantenimiento.
 
 ### Logica de Negocio con PHP (Backend)
 
-- Los archivos PHP (controladores y modelos en `backend/`) **NO** contendrán código HTML, CSS ni JavaScript. Su función se limitará a:
+- Los archivos PHP (controladores y modelos en `backend/`) **NO** contendran codigo HTML, CSS ni JavaScript. Su funcion se limitara a:
     - Recibir peticiones del frontend.
     - Realizar validaciones de seguridad y reglas de negocio en el servidor (ej. verificar que el usuario tenga permisos, evitar inyecciones SQL, comprobar integridad de datos antes de guardar, y verificar la contraseña mediante `password_verify()`).
     - Interactuar con la base de datos.
     - Devolver respuestas en formato JSON o redirigir a las vistas correspondientes.
 - Esta arquitectura MVC (Modelo-Vista-Controlador) asegura que los programadores de frontend y backend puedan trabajar en paralelo sin conflictos.
+
+---
 
 ## 7. Control de Acceso por Rol (Permisos)
 
@@ -834,14 +858,14 @@ Para garantizar un código limpio, mantenible y alineado con las buenas práctic
 | Autenticacion (Login con usuario y contraseña) | Si, verifica hash | Si, verifica hash |
 | Dashboard | Visualizacion completa | Visualizacion resumida |
 | Clientes | Crear, Leer, Actualizar, Borrar logico | Crear, Leer, Actualizar, Borrar logico |
-| Tipos de Habitacion | Crear, Leer, Actualizar, Eliminar | Solo lectura |
-| Tarifas Temporada | Crear, Leer, Actualizar, Eliminar | Solo lectura |
-| Habitaciones | Crear, Leer, Actualizar, Eliminar | Leer, actualizar estado (disponible/ocupada) |
+| Tipos de Habitacion (catalogo) | Crear, Leer, Actualizar, Eliminar | Solo lectura |
+| Tarifas Temporada (catalogo) | Crear, Leer, Actualizar, Eliminar | Solo lectura |
+| Habitaciones (inventario fisico) | Crear, Leer, Actualizar, Eliminar | Leer, actualizar estado (disponible/ocupada) |
 | Reservas | Crear, Leer, Actualizar, Cancelar, Completar | Crear, Leer, Actualizar, Cancelar (solo propias) |
-| Servicios | Crear, Leer, Actualizar, Eliminar | Solo lectura |
-| Reserva-Servicios | Gestionar (añadir/quitar) | Gestionar (añadir/quitar) sobre reservas propias |
+| Servicios (catalogo) | Crear, Leer, Actualizar, Eliminar | Solo lectura |
+| Reserva-Servicios (asignacion) | Gestionar (añadir/quitar) | Gestionar (añadir/quitar) sobre reservas propias |
 | Pagos | Registrar, Leer, Anular | Registrar, Leer, Anular (sobre reservas propias) |
-| Historial / Auditoria | Lectura completa | Solo lectura de reservas propias |
+| Historial / Auditoria | Lectura completa (global) | Solo lectura de reservas propias |
 | Usuarios (incluye cambio de contraseña) | Crear, Leer, Actualizar, Eliminar | No permitido |
 | Reportes | Todos los reportes | Solo reportes basicos de ocupacion |
 | Configuracion | Acceso total | No permitido |
