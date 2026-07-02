@@ -475,29 +475,31 @@ activo BOOLEAN NOT NULL DEFAULT TRUE,
 fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 4. Tabla de Tipos de Habitación
+-- 4. Tabla de Tipos de Habitación (CORREGIDA)
 CREATE TABLE tipos_habitacion (
 id_tipo_habitacion INT AUTO_INCREMENT PRIMARY KEY,
-nombre_tipo VARCHAR(50) NOT NULL UNIQUE, -- E.g., 'Simple', 'Doble', 'Suite'
+nombre_tipo VARCHAR(50) NOT NULL UNIQUE,
 descripcion TEXT,
-capacidad_max INT NOT NULL CONSTRAINT chk_capacidad CHECK (capacidad_max > 0)
+capacidad_max INT NOT NULL,
+CONSTRAINT chk_capacidad CHECK (capacidad_max > 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 5. Tabla de Tarifas por Temporada
 CREATE TABLE tarifas_temporada (
 id_tarifa INT AUTO_INCREMENT PRIMARY KEY,
 id_tipo_habitacion INT NOT NULL,
-nombre_temporada VARCHAR(50) NOT NULL, -- E.g., 'Alta Verano', 'Baja Invierno'
-precio_noche DECIMAL(10,2) NOT NULL CONSTRAINT chk_precio CHECK (precio_noche >= 0),
+nombre_temporada VARCHAR(50) NOT NULL,
+precio_noche DECIMAL(10,2) NOT NULL,
 fecha_inicio DATE NOT NULL,
 fecha_fin DATE NOT NULL,
 FOREIGN KEY (id_tipo_habitacion) REFERENCES tipos_habitacion(id_tipo_habitacion) ON DELETE CASCADE,
+CONSTRAINT chk_precio_noche CHECK (precio_noche >= 0),
 CONSTRAINT chk_fechas_tarifa CHECK (fecha_fin >= fecha_inicio)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 6. Tabla de Habitaciones (ID Manual para número físico)
 CREATE TABLE habitaciones (
-id_habitacion INT PRIMARY KEY, -- ID Manual (Ej. 101, 102, 201)
+id_habitacion INT PRIMARY KEY, -- Ej. 101, 102, 201
 id_tipo_habitacion INT NOT NULL,
 estado_actual ENUM('DISPONIBLE', 'OCUPADA', 'MANTENIMIENTO') NOT NULL DEFAULT 'DISPONIBLE',
 activa BOOLEAN NOT NULL DEFAULT TRUE,
@@ -511,7 +513,7 @@ id_cliente INT NOT NULL,
 id_habitacion INT NOT NULL,
 fecha_entrada DATE NOT NULL,
 fecha_salida DATE NOT NULL,
-precio_noche_congelado DECIMAL(10,2) NOT NULL, -- Almacena la tarifa fija del momento
+precio_noche_congelado DECIMAL(10,2) NOT NULL,
 estado_reserva ENUM('ACTIVA', 'CONFIRMADA', 'CANCELADA', 'COMPLETADA') NOT NULL DEFAULT 'ACTIVA',
 penalizacion DECIMAL(10,2) DEFAULT 0.00,
 fecha_cancelacion DATETIME,
@@ -528,13 +530,14 @@ CONSTRAINT chk_fechas_reserva CHECK (fecha_salida > fecha_entrada),
 CONSTRAINT chk_precio_congelado CHECK (precio_noche_congelado >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 8. Catálogo de Servicios Adicionales
+-- 8. Catálogo de Servicios Adicionales (CORREGIDA)
 CREATE TABLE servicios_extras (
 id_servicio INT AUTO_INCREMENT PRIMARY KEY,
 nombre_servicio VARCHAR(50) NOT NULL UNIQUE,
 descripcion VARCHAR(255),
-precio_actual DECIMAL(10,2) NOT NULL CONSTRAINT chk_precio_servicio CHECK (precio_actual >= 0),
-activo BOOLEAN NOT NULL DEFAULT TRUE
+precio_actual DECIMAL(10,2) NOT NULL,
+activo BOOLEAN NOT NULL DEFAULT TRUE,
+CONSTRAINT chk_precio_servicio CHECK (precio_actual >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 9. Detalle de Servicios contratados por Reserva (Precio Congelado)
@@ -542,11 +545,12 @@ CREATE TABLE reserva_servicios (
 id_reserva_servicio INT AUTO_INCREMENT PRIMARY KEY,
 id_reserva INT NOT NULL,
 id_servicio INT NOT NULL,
-cantidad INT NOT NULL DEFAULT 1 CONSTRAINT chk_cantidad CHECK (cantidad > 0),
-precio_unitario DECIMAL(10,2) NOT NULL, -- Precio congelado al consumir el servicio
+cantidad INT NOT NULL DEFAULT 1,
+precio_unitario DECIMAL(10,2) NOT NULL,
 fecha_consumo DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (id_reserva) REFERENCES reservas(id_reserva) ON DELETE CASCADE,
 FOREIGN KEY (id_servicio) REFERENCES servicios_extras(id_servicio) ON DELETE RESTRICT,
+CONSTRAINT chk_cantidad CHECK (cantidad > 0),
 CONSTRAINT chk_precio_unitario CHECK (precio_unitario >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -554,16 +558,17 @@ CONSTRAINT chk_precio_unitario CHECK (precio_unitario >= 0)
 CREATE TABLE pagos (
 id_pago INT AUTO_INCREMENT PRIMARY KEY,
 id_reserva INT NOT NULL,
-monto DECIMAL(10,2) NOT NULL CONSTRAINT chk_monto_pago CHECK (monto > 0),
+monto DECIMAL(10,2) NOT NULL,
 metodo_pago ENUM('EFECTIVO', 'TARJETA_CREDITO', 'TARJETA_DEBITO', 'TRANSFERENCIA') NOT NULL,
 fecha_pago DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-FOREIGN KEY (id_reserva) REFERENCES reservas(id_reserva) ON DELETE RESTRICT
+FOREIGN KEY (id_reserva) REFERENCES reservas(id_reserva) ON DELETE RESTRICT,
+CONSTRAINT chk_monto_pago CHECK (monto > 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 11. Tabla de Bitácora / Auditoría Global
 CREATE TABLE auditoria (
 id_auditoria INT AUTO_INCREMENT PRIMARY KEY,
-id_usuario INT, -- Quién realizó la acción (NULL si es del sistema automático)
+id_usuario INT,
 tabla_afectada VARCHAR(50) NOT NULL,
 accion ENUM('INSERT', 'UPDATE', 'DELETE') NOT NULL,
 descripcion_cambio TEXT NOT NULL,
@@ -572,10 +577,21 @@ FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =============================================================================
--- ÍNDICES OPTIMIZADOS PARA OPERACIONES FRECUENTES
+-- ÍNDICES OPTIMIZADOS
 -- =============================================================================
 CREATE INDEX idx_reservas_fechas ON reservas(fecha_entrada, fecha_salida, estado_reserva);
 CREATE INDEX idx_tarifas_periodo ON tarifas_temporada(fecha_inicio, fecha_fin);
+
+-- =============================================================================
+-- INSERCIÓN DE DATOS SEMILLA (ROLES Y USUARIO ADMIN POR DEFECTO)
+-- =============================================================================
+INSERT INTO roles (nombre_rol, descripcion) VALUES
+('ADMIN', 'Acceso total al sistema y auditorías'),
+('RECEPCIONISTA', 'Gestión operativa de reservas, pagos y huéspedes');
+
+-- Contraseña por defecto: Admin123 (hasheada de forma segura con BCRYPT)
+INSERT INTO usuarios (id_rol, nombre, apellido_paterno, correo, password_hash) VALUES
+(1, 'Ángel Uriel', 'Monterrosas', 'admin@hotel.buap.mx', '$2y$10$wE7/Lbe.gA7wA6Q0P9YI4.S1OunIOnjZ.D8GZtqW90E5VepfPfeI6');
 
 ```
 Datos de prueba:
